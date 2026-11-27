@@ -187,9 +187,12 @@ class DetectionValidator(BaseValidator):
         self.metrics.area_ap = {}
         self.confusion_matrix = ConfusionMatrix(names=model.names, save_matches=self.args.plots and self.args.visualize)
         if self.args.task == "detect" and self.args.mode == "train" and not self.training:
-            from ultralytics.utils.callbacks.platform import platform_api_key
+            from ultralytics.utils.callbacks import platform
 
-            if platform_api_key(self.args):  # seen by every DDP rank, unlike the rank-0 Platform callback
+            record = [bool(platform._api_key)]  # set only on rank 0, by the Platform callback that sends the cells
+            if RANK > -1:
+                dist.broadcast_object_list(record, 0)  # every rank must agree on joining the cells gather
+            if record[0]:
                 self.confusion_matrix.cells = {}  # a training run's final validation records them for Platform
 
     def get_desc(self) -> str:

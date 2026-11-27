@@ -332,23 +332,20 @@ def _get_system_metrics(trainer):
         return None
 
 
-def platform_api_key(args):
-    """Return the API key a run with these args reports to Platform with, or None when it does not report."""
-    if TESTS_RUNNING or not args.project:
-        return None
-    return os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
-
-
 def on_pretrain_routine_start(trainer):
     """Initialize Platform logging at training start, continuing the recorded Platform model when resuming."""
     global _api_key
-    _api_key = platform_api_key(trainer.args)
+    _api_key = None  # kept only while Platform tracks this run, which the final validation records cells for
+    if TESTS_RUNNING or not trainer.args.project:
+        return
+    _api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
     if not _api_key:
         return
     if sys.version_info < (3, 11):
         LOGGER.warning(
             f"{PREFIX}Platform integration requires Python 3.11 or newer. Training will continue without tracking."
         )
+        _api_key = None
         return
 
     project, name = _get_project_name(trainer)
@@ -424,7 +421,7 @@ def on_pretrain_routine_start(trainer):
         _handle_control_response(trainer, ctx, response)
     else:
         LOGGER.warning(f"{PREFIX}Training will not be tracked on Platform")
-        trainer.platform = None  # Disable further callbacks
+        trainer.platform = _api_key = None  # Disable further callbacks and the final validation's cells
 
 
 def on_pretrain_routine_end(trainer):

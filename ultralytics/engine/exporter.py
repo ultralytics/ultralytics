@@ -1201,7 +1201,7 @@ class Exporter:
         )
 
     @try_export
-    def export_onnx(self, prefix=colorstr("ONNX:")):  # noqa: B008
+    def export_onnx(self, prefix=colorstr("ONNX:"), file=None):  # noqa: B008
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.16.1,<1.19.0" if self.args.format == "rknn" else "onnx>=1.12.0,<2.0.0"]
         if self.args.simplify or (
@@ -1229,7 +1229,7 @@ class Exporter:
         if self.args.nms:
             assert TORCH_1_13, f"'nms=True' ONNX export requires torch>=1.13 (found torch=={TORCH_VERSION})"
 
-        f = str(self.file.with_suffix(".onnx"))
+        f = str(file or self.file.with_suffix(".onnx"))
         output_names = ["output0", "output1"] if self.model.task == "segment" else ["output0"]
         dynamic = self.args.dynamic
         if dynamic:
@@ -1567,7 +1567,9 @@ class Exporter:
             self.args.opset = self.args.opset or 19
             assert self.args.opset <= 19, "RTDETR TensorFlow export requires opset<=19"
         self.args.simplify = True
-        f_onnx = self.export_onnx()  # ensure ONNX is available
+        if self.args.format == "edgetpu":
+            f.mkdir(parents=True)  # holds the tf_wrapper ONNX, kept out of the regular ONNX export path
+        f_onnx = self.export_onnx(file=f / f"{self.file.stem}.onnx" if self.args.format == "edgetpu" else None)
         keras_model = onnx2saved_model(
             f_onnx,
             f,

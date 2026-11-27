@@ -36,6 +36,7 @@ from ultralytics.utils import (
     TORCHVISION_VERSION,
     WINDOWS,
     colorstr,
+    cpu_threads,
 )
 from ultralytics.utils.checks import check_requirements, check_version
 from ultralytics.utils.cpu import CPUInfo
@@ -361,7 +362,7 @@ def select_device(device="", newline=False, verbose=True):
         arg = "cpu"
 
     if arg in {"cpu", "mps"}:
-        torch.set_num_threads(NUM_THREADS)  # reset OMP_NUM_THREADS for cpu training
+        torch.set_num_threads(cpu_threads(NUM_THREADS))  # reset OMP_NUM_THREADS for cpu training
     if arg == "cpu" and MACOS and ARM64 and TORCH_2_3:
         torch.backends.nnpack.set_flags(False)  # NNPACK conv2d at batch>=16 is 6x slower than im2col on Apple silicon
     if verbose:

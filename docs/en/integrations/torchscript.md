@@ -364,9 +364,9 @@ Save it as `model_repository/yolo26n/config.pbtxt`, export Ultralytics YOLO26 in
 mkdir -p yolo26n-export model_repository/yolo26n/1
 cd yolo26n-export && yolo export model=yolo26n.pt format=torchscript && cd ..
 docker run -d --rm --name yolo26n-triton --gpus all -p 8000:8000 \
-    -v "$PWD/model_repository:/models:ro" -v "$PWD/yolo26n-export:/models/yolo26n/1:ro" \
-    nvcr.io/nvidia/tritonserver:26.11-py3 \
-    tritonserver --model-repository=/models --model-control-mode=explicit --load-model=yolo26n
+  -v "$PWD/model_repository:/models:ro" -v "$PWD/yolo26n-export:/models/yolo26n/1:ro" \
+  nvcr.io/nvidia/tritonserver:26.11-py3 \
+  tritonserver --model-repository=/models --model-control-mode=explicit --load-model=yolo26n
 ```
 
 Triton serves the model over HTTP at `localhost:8000/v2/models/yolo26n/infer`, with the input `input__0` that the [Python example](#run-with-libtorch) prepares as `x`. Triton keeps the model it has loaded: after a new export into `yolo26n-export`, load it again with `curl -X POST localhost:8000/v2/repository/models/yolo26n/load`. That request needs `--model-control-mode=explicit`; without it, Triton answers `explicit model load / unload is not allowed if polling is enabled`. For this page, Triton 26.11 (server 2.75.0) ran these commands on one RTX PRO 6000, with the instance on the GPU (`KIND_GPU`) by default. The export with `nms=None` returned `(1, 84, 8400)`. After a re-export with `nms=False` into `yolo26n-export`, Triton kept returning `(1, 84, 8400)` until the load request; after it, and after a further re-export with `nms=True` and load request, Triton returned `(1, 300, 6)` with the same 5 objects and boxes on `bus.jpg` as `YOLO()` on the new file, with scores within 0.01. To serve Ultralytics models from Triton with ONNX, see the [Triton guide](../guides/triton-inference-server.md).

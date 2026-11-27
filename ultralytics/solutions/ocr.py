@@ -37,11 +37,14 @@ class TextRecognizer:
         """Load the recognizer on the NVIDIA GPU `device` when available, else on CPU, with its embedded character set.
 
         With `engine=True` on an NVIDIA GPU it runs as an FP16 TensorRT engine, built once per TensorRT version and GPU
-        architecture (about 30 s) and cached next to the ONNX model.
+        architecture (about 30 s) and cached next to the ONNX model. A `.engine` `model` loads that engine as is.
         """
         device = select_device("cpu" if device is None and not torch.cuda.is_available() else device, verbose=False)
         cuda = getattr(device, "type", "cpu") == "cuda" and not rocm_is_available()  # others, AMD too, read on CPU
         model = str(attempt_download_asset(model))
+        if model.endswith(".engine") and not cuda:
+            raise ValueError(f"TensorRT engine '{model}' needs an NVIDIA CUDA device, not device={device}.")
+        engine |= model.endswith(".engine")
         self.session = None
         if engine and cuda:  # one TensorRT context, whose output buffer every batch reuses, so one batch at a time
             self.backend, self.lock = self.load_engine(model, device), threading.Lock()
@@ -76,6 +79,7 @@ class TextRecognizer:
 
         sm = "".join(map(str, torch.cuda.get_device_capability(device)))
         f = Path(model).with_name(f"{Path(model).stem}-trt{trt.__version__}-sm{sm}.engine")
+        f = Path(model) if model.endswith(".engine") else f
         if not f.exists():  # dynamic batches of up to 8 words, 48 px high and up to 3200 px wide
             check_requirements(["onnx>=1.12.0,<2.0.0", "onnxconverter-common"])
             import onnx

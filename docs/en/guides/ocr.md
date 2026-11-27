@@ -233,7 +233,8 @@ The recognizer resizes each crop to 48 pixels high, sorts the crops by width, an
 default), so crops of similar width share a batch. Pass a model from [Read Other Scripts](#read-other-scripts) with its
 `.onnx` ending, such as `TextRecognizer("korean_PP-OCRv5_mobile_rec.onnx")`, to read another script.
 `TextRecognizer(device=0, engine=True)` reads with the same FP16 TensorRT engine as `recognizer="tensorrt"`, and like
-`OCR` it needs Python 3.11 or newer when it reads on ONNX Runtime.
+`OCR` it needs Python 3.11 or newer when it reads on ONNX Runtime. To skip the build on each device, pass an engine built
+earlier on the same TensorRT version and GPU, such as `TextRecognizer("PP-OCRv6_medium_rec-trt10.3.0.30-sm87.engine", device=0)`.
 
 !!! warning "Turn crops upright first"
 

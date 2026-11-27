@@ -1578,6 +1578,8 @@ class Exporter:
             cuda=self.device.type == "cuda" and not rocm_is_available(),  # TensorFlow and onnxruntime-gpu are CUDA-only
             prefix=prefix,
         )
+        if self.args.format == "edgetpu":
+            Path(f_onnx).unlink()  # the tf_wrapper ONNX outputs normalized boxes, never leave it as <stem>.onnx
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
         # Add TFLite metadata
         for file in f.rglob("*.tflite"):

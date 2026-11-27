@@ -49,6 +49,10 @@ class SegmentationValidator(DetectionValidator):
     def preprocess_targets(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Move segmentation targets to the device as float32.
 
+        With `overlap_mask` during training, `masks` becomes the loss's layout (one map per image where j + 1 marks the
+        image's j-th object and smaller objects cover larger ones) and the per-object masks move to `instance_masks`
+        for scoring.
+
         Args:
             batch (dict[str, Any]): Batch containing images and annotations.
 
@@ -57,6 +61,13 @@ class SegmentationValidator(DetectionValidator):
         """
         batch = super().preprocess_targets(batch)
         batch["masks"] = batch["masks"].float()
+        if self.training and self.args.overlap_mask:
+            masks, idx = batch["masks"], batch["batch_idx"].long()
+            n = torch.bincount(idx, minlength=len(batch["img"]))
+            slots = masks.new_zeros(len(n), int(n.max()) + 1, *masks.shape[1:])  # slot j + 1 holds object j
+            area = masks.sum((1, 2), keepdim=True).clamp(min=1)
+            slots[idx, torch.arange(len(idx), device=idx.device) - (n.cumsum(0) - n)[idx] + 1] = masks / area
+            batch.update(masks=slots.argmax(1).float(), instance_masks=masks)  # smallest covering object, 0 if none
         return batch
 
     def init_metrics(self, model: torch.nn.Module) -> None:
@@ -103,14 +114,8 @@ class SegmentationValidator(DetectionValidator):
         prepared_batch = super()._prepare_batch(si, batch)
         if self.coco_labels is not None and not (self.args.plots and self.args.visualize):
             return prepared_batch  # the scorer reads the original COCO masks
-        nl = prepared_batch["cls"].shape[0]
-        if self.args.overlap_mask:
-            masks = batch["masks"][si]
-            index = torch.arange(1, nl + 1, device=masks.device).view(nl, 1, 1)
-            masks = (masks == index).float()
-        else:
-            masks = batch["masks"][batch["batch_idx"] == si]
-        if nl:
+        masks = batch.get("instance_masks", batch["masks"])[batch["batch_idx"] == si]
+        if len(masks):
             native = self.process is ops.process_mask_native and not self.args.tile  # tiled targets stay at mask_ratio
             mask_size = [s if native else s // 4 for s in prepared_batch["imgsz"]]
             if masks.shape[1:] != mask_size:
@@ -136,7 +141,6 @@ class SegmentationValidator(DetectionValidator):
 
         Notes:
             - This method computes IoU between predicted and ground truth masks.
-            - Overlapping masks are handled based on the overlap_mask argument setting.
         """
         tp = super()._process_batch(preds, batch)
         gt_cls = batch["cls"]

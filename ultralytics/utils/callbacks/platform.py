@@ -5,9 +5,10 @@ import platform
 import re
 import socket
 import sys
+import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from math import isfinite
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from time import time
 
 from ultralytics.utils import (
@@ -40,8 +41,8 @@ def _compact_plot(plot, n=101):
     """
     import numpy as np
 
-    if "matrix" in plot:  # Platform slices a matrix over 100 rows to its first 100
-        return {**plot, "matrix": [row[:100] for row in plot["matrix"][:100]]}
+    if "matrix" in plot:  # Platform draws the first 100 classes, normalized by column totals over all rows
+        return {**plot, "matrix": (m := np.array(plot["matrix"])[:, :100])[:100].tolist(), "totals": m.sum(0).tolist()}
 
     x, y = np.array(plot["x"]), np.array(plot["y"])
     if len(y) > 20:  # mean curve and AP only, so rows no longer map to classes
@@ -132,17 +133,17 @@ def _handle_control_response(trainer, ctx, response):
         LOGGER.info(f"{PREFIX}Training cancelled from Platform ⚠️")
 
 
-def _upload_model(model_path, project, name, progress=False, retry=1, model_id=None, run_id=None):
-    """Publish a model checkpoint to its configured Platform storage location."""
+def _upload_file(file_path, project, name, progress=False, retry=1, model_id=None, run_id=None, visual=False):
+    """Publish a training file to its configured Platform storage location."""
     from ultralytics.utils.uploads import safe_upload
 
     if not _api_key:
         return None
-    model_path = Path(model_path)
-    if not model_path.exists():
-        LOGGER.warning(f"{PREFIX}Model file not found: {model_path}")
+    file_path = Path(file_path)
+    if not file_path.exists():
+        LOGGER.warning(f"{PREFIX}File not found: {file_path}")
         return None
-    model_size = model_path.stat().st_size
+    file_size = file_path.stat().st_size
     import httpx
 
     from ultralytics import APIError, Platform
@@ -159,7 +160,9 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
             retry_methods=("POST",),
             http_client=httpx.Client(follow_redirects=True),
         ) as client:
-            data = client.models.upload_checkpoint(filename=model_path.name, timeout=30, **identity)
+            data = client.models.upload_checkpoint(
+                filename=file_path.name, size=file_size if visual else None, timeout=30, **identity
+            )
             if not isinstance(data, dict):
                 raise TypeError("Invalid Platform upload response")
     except Exception as error:
@@ -167,8 +170,13 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
         LOGGER.warning(f"{PREFIX}Failed to get upload URL: {detail}")
         return None
 
-    # Upload to GCS using safe_upload with retry logic and optional progress bar
-    if safe_upload(file=model_path, url=data["uploadUrl"], retry=retry, progress=progress):
+    headers = {"Content-Type": "image/avif"} if visual else None
+    timeout = 30 if visual else 600  # a stalled image upload must not hold the GPU at the end of training
+    if safe_upload(
+        file=file_path, url=data["uploadUrl"], headers=headers, retry=retry, timeout=timeout, progress=progress
+    ):
+        if visual:
+            return file_path.name
         gcs_path = data.get("gcsPath")
         if gcs_path and run_id:
             saved = _send(
@@ -183,8 +191,8 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
                 model_id,
                 timeout=90,
             )
-            return {"modelPath": gcs_path, "modelSize": model_size} if saved else None
-        return {"modelPath": gcs_path, "modelSize": model_size}
+            return {"modelPath": gcs_path, "modelSize": file_size} if saved else None
+        return {"modelPath": gcs_path, "modelSize": file_size}
     return None
 
 
@@ -241,24 +249,34 @@ def _get_environment_info():
 
 
 def _get_project_name(trainer):
-    """Get slugified project and raw run name from trainer args; Platform derives the model slug from the name."""
+    """Get slugified project and raw run name from trainer args; Platform derives the model slug from the name.
+
+    A local save directory names the project by its last folder with a usable name, so a path never becomes a Platform
+    project name.
+    """
     raw = str(trainer.args.project)
+    path = PureWindowsPath(raw)  # reads both separators and drive letters on any OS
+    if path.anchor or raw.startswith(("~", ".")) or "\\" in raw:  # a local path, not `username/project`
+        raw = next((part for part in reversed(path.parts) if slugify(part)), raw)
     parts = raw.split("/", 1)
     project = f"{parts[0]}/{slugify(parts[1].replace('/', '-'))}" if len(parts) == 2 else slugify(raw)
     return project, str(trainer.args.name or "train")
 
 
 def _get_training_gpus(trainer):
-    """Return the NVML indices of the GPUs a run trains on, so a shared host reports no other runs' GPUs.
+    """Return the NVML indices (torch indices on ROCm) of the GPUs a run trains on, so a shared host reports only them.
 
-    Trainer CUDA indices are torch indices, which map to NVML ids through CUDA_VISIBLE_DEVICES. Non-CUDA training
-    reports no GPUs, and a CUDA_VISIBLE_DEVICES of GPU UUIDs, which has no index mapping, reports every GPU.
+    Trainer CUDA indices are torch indices, which map to NVML ids through CUDA_VISIBLE_DEVICES on NVIDIA. Non-CUDA
+    training reports no GPUs, and an NVIDIA CUDA_VISIBLE_DEVICES of GPU UUIDs, which has no index mapping, reports every
+    GPU.
     """
     if trainer.device.type != "cuda":
         return []
+    import torch
+
     indices = [int(x) for x in trainer.args.device.split(",") if x.isdigit()] or [trainer.device.index]
     visible = [x for x in os.environ.get("CUDA_VISIBLE_DEVICES", "").replace(" ", "").split(",") if x]
-    if not visible:
+    if not visible or torch.version.hip:
         return indices
     ids = [visible[i] for i in indices]
     return [int(x) for x in ids] if all(x.isdigit() for x in ids) else None
@@ -302,6 +320,7 @@ def on_pretrain_routine_start(trainer):
         "run_id": None,
         "last_upload": time(),
         "checkpoint_upload": None,
+        "visual_upload": None,
         "cancelled": False,
         "console_logger": None,
         "system_logger": None,
@@ -382,13 +401,20 @@ def on_fit_epoch_end(trainer):
 
     project, name = _get_project_name(trainer)
     metrics = {**trainer.label_loss_items(trainer.tloss, prefix="train"), **trainer.metrics}
+    first_epoch = trainer.epoch == 0
+    # Initial training batch plots this run saved (fewer than 3 if plots=False, epoch 0 is short, or a plot failed)
+    visual_files = (
+        [p for i in range(3) if (p := trainer.save_dir / f"train_batch{i}.jpg") in trainer.plots]
+        if first_epoch and ctx["run_id"]
+        else []
+    )
 
     if trainer.optimizer and trainer.optimizer.param_groups:
         metrics["lr"] = trainer.optimizer.param_groups[0]["lr"]
 
     # Extract model info at epoch 0 (sent as separate field, not in metrics)
     model_info = None
-    if trainer.epoch == 0:
+    if first_epoch:
         try:
             from ultralytics.utils.torch_utils import model_info_for_loggers
 
@@ -413,10 +439,30 @@ def on_fit_epoch_end(trainer):
 
     def _send_and_check_cancel():
         """Send epoch_end and check response for cancellation (runs in background thread)."""
+        if visual_files:
+            try:
+                from PIL import Image
+
+                with tempfile.TemporaryDirectory() as tmp:
+                    visuals = []
+                    for f in visual_files:
+                        avif = Path(tmp) / f"{f.stem}.avif"
+                        with Image.open(f) as im:
+                            im.save(avif, "AVIF", quality=70)  # Platform image standard, needs Pillow>=11.3
+                        if _upload_file(
+                            avif, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"], visual=True
+                        ):
+                            visuals.append(avif.name)
+                if visuals:
+                    payload["visuals"] = visuals
+            except Exception as e:  # optional visuals never block epoch metrics or the end of training
+                LOGGER.warning(f"{PREFIX}Training visuals not uploaded: {e}")
         response = _send("epoch_end", payload, project, name, ctx["model_id"], retry=1)
         _handle_control_response(trainer, ctx, response)
 
-    _executor.submit(_send_and_check_cancel)
+    upload = _executor.submit(_send_and_check_cancel)
+    if first_epoch:
+        ctx["visual_upload"] = upload
 
 
 def on_model_save(trainer):
@@ -436,7 +482,7 @@ def on_model_save(trainer):
 
     project, name = _get_project_name(trainer)
     ctx["checkpoint_upload"] = _executor.submit(
-        _upload_model, model_path, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"]
+        _upload_file, model_path, project, name, model_id=ctx["model_id"], run_id=ctx["run_id"]
     )
     ctx["last_upload"] = time()
 
@@ -454,6 +500,8 @@ def on_train_end(trainer):
 
     # Stop console capture
     ctx["console_logger"].stop_capture()
+    if ctx["visual_upload"]:
+        ctx["visual_upload"].result()
 
     # Upload best.pt, or last.pt when save=False never wrote best.pt (blocking with progress bar to ensure it completes)
     artifact = None
@@ -461,7 +509,7 @@ def on_train_end(trainer):
     if Path(model_path).exists():
         if ctx["checkpoint_upload"]:
             ctx["checkpoint_upload"].result()
-        artifact = _upload_model(
+        artifact = _upload_file(
             model_path,
             project,
             name,

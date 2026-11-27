@@ -175,7 +175,7 @@ Keep the following in mind if you are facing issues related to model training.
 **Class Distribution**
 
 - Importance: The distribution of classes in your dataset can influence the model's prediction tendencies.
-- Recommendation: Regularly assess the distribution of classes within your dataset. If there's a [class imbalance](../modes/train.md#how-do-i-train-a-model-on-an-imbalanced-dataset), there's a risk that the model will develop a bias toward the more prevalent class. This bias can be evident in the [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix), where the model might predominantly predict the majority class.
+- Recommendation: Regularly assess the distribution of classes within your dataset, for example with a [dataset audit script](preprocessing-annotated-data.md#audit-labels-with-a-script). If there's a [class imbalance](preprocessing-annotated-data.md#handling-class-imbalance), there's a risk that the model will develop a bias toward the more prevalent class. This bias can be evident in the [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix), where the model might predominantly predict the majority class.
 
 **Cross-Check with Pretrained Weights**
 
@@ -220,7 +220,7 @@ yolo segment predict model=yolo26n-seg.pt source='path/to/car.mp4' show=True cla
 
 **Issue**: Confusion regarding the difference between box precision, mask precision, and confusion matrix precision in YOLO26.
 
-**Solution**: Box precision measures the accuracy of predicted bounding boxes compared to the actual ground truth boxes using [IoU (Intersection over Union)](https://www.ultralytics.com/glossary/intersection-over-union-iou) as the metric. Mask precision assesses the agreement between predicted segmentation masks and ground truth masks in pixel-wise object classification. Confusion matrix precision, on the other hand, focuses on overall classification accuracy across all classes and does not consider the geometric accuracy of predictions. It's important to note that a [bounding box](https://www.ultralytics.com/glossary/bounding-box) can be geometrically accurate (true positive) even if the class prediction is wrong, leading to differences between box precision and confusion matrix precision. These metrics evaluate distinct aspects of a model's performance, reflecting the need for different evaluation metrics in various tasks.
+**Solution**: Box precision measures the accuracy of predicted bounding boxes compared to the actual ground truth boxes using [IoU (Intersection over Union)](https://www.ultralytics.com/glossary/intersection-over-union-iou) as the metric. Mask precision assesses the agreement between predicted segmentation masks and ground truth masks in pixel-wise object classification. Confusion matrix precision is counted differently, as explained in [why the confusion matrix differs from the validation results](yolo-performance-metrics.md#why-do-precision-and-recall-from-the-confusion-matrix-differ-from-the-validation-results). These metrics evaluate distinct aspects of a model's performance, reflecting the need for different evaluation metrics in various tasks.
 
 #### Extracting Object Dimensions in YOLO26
 

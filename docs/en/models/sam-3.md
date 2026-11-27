@@ -381,6 +381,17 @@ SAM 3 achieves state-of-the-art results across multiple benchmarks, including re
 
 Explore dataset options for quick experimentation in [Ultralytics datasets](../datasets/index.md).
 
+#### SAM 3.1 multi-prompt inference on LVIS minival
+
+The Ultralytics `SAM3SemanticPredictor` was evaluated on all 4,752 LVIS minival images with SAM 3.1 in FP16 at `imgsz=1036`. Each image's query classes were prompted together. Running class-aware non-maximum suppression in FP32 at `iou=0.7` removed duplicate boxes that survived the previous implementation. [Benchmark and reproduction](https://github.com/ultralytics/ultralytics/issues/27371)
+
+| Confidence | Returned boxes before | Returned boxes after | LVIS AP before | LVIS AP after |
+| ---------- | --------------------: | -------------------: | -------------: | ------------: |
+| 0.001      |             4,832,974 |            4,265,953 |          60.74 |         60.65 |
+| 0.25       |                83,568 |               82,072 |          55.92 |         55.89 |
+
+At `conf=0.001`, rare-category AP changed from 63.45 to 63.27.
+
 ### Video Segmentation Performance
 
 SAM 3 shows significant improvements over SAM 2 and prior state-of-the-art across video benchmarks such as [DAVIS 2017](https://davischallenge.org/) and [YouTube-VOS](https://youtube-vos.org/):

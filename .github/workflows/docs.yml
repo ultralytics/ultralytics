@@ -83,6 +83,43 @@ jobs:
           --target-version py38 \
           --ignore BLE001,D100,D104,D203,D205,D212,D213,D401,D406,D407,D413,RUF001,RUF002,RUF012,S110 \
           .
+      - name: Update Docs Authors
+        # Same-repo PRs only: fork PRs get a read-only token, so the YAML could never be pushed back. A fork author
+        # is added by the next same-repo PR, which scans all of main's history; noreply addresses need no entry.
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          python - <<'EOF'
+          import json, os, subprocess, urllib.request, yaml
+          # Add each new docs author to the YAML once, from GitHub's own commit attribution (null: no account)
+          path = "docs/mkdocs_github_authors.yaml"
+          authors = yaml.safe_load(open(path))
+          known = {email.lower() for email in authors}
+          new = {}
+          for line in subprocess.check_output(["git", "log", "--format=%H %ae", "--", "docs/en", "ultralytics"], text=True).splitlines():
+              sha, email = line.split(" ", 1)
+              email = email.lower()
+              if email not in known:
+                  new.setdefault(email, sha)
+          for email, sha in new.items():
+              # GraphQL, not REST: REST still names suspended or deleted accounts, whose profiles 404
+              owner, name = os.environ["REPO"].split("/")
+              query = f'{{repository(owner:"{owner}",name:"{name}"){{object(oid:"{sha}"){{...on Commit{{author{{user{{login databaseId}}}}}}}}}}}}'
+              request = urllib.request.Request(
+                  "https://api.github.com/graphql",
+                  json.dumps({"query": query}).encode(),
+                  {"Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}"},
+              )
+              user = json.load(urllib.request.urlopen(request))["data"]["repository"]["object"]["author"]["user"] or {}
+              avatar = f"https://avatars.githubusercontent.com/u/{user['databaseId']}?v=4" if user else None
+              authors[email] = {"avatar": avatar, "username": user.get("login")}
+              print(f"{email}: {user.get('login') or 'no GitHub account, omitted from docs pages'}")
+          if new:  # prettier's quote style, so the format bot doesn't rewrite it
+              open(path, "w").write(yaml.safe_dump(authors, sort_keys=True, allow_unicode=True).replace("'", '"'))
+          EOF
       - name: Validate Docs with Zensical
         run: python docs/build_docs.py
       - name: Commit and Push Docs changes

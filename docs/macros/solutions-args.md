@@ -26,7 +26,7 @@
     "max_speed": ["int", "120", "Maximum speed in km/h; higher estimated speeds are capped at this value."],
     "data": ["str", "'images'", "Path to image directory used for similarity search."],
     "imgsz": ["int", "640", "Input image size for model inference."],
-    "recognizer": ["str` or `Callable", "'paddleocr'", "Text-recognition backend: `'paddleocr'` (PP-OCRv6 on ONNX Runtime), `'tensorrt'` (PP-OCRv6 as an FP16 TensorRT engine on NVIDIA GPUs), or a callable accepting a BGR crop and returning `(text, confidence)`."],
+    "recognizer": ["str` or `Callable", "'paddleocr'", "Text-recognition backend: `'paddleocr'` (PP-OCRv6 on ONNX Runtime), `'tensorrt'` (PP-OCRv6 as an FP16 TensorRT engine on NVIDIA GPUs), a PaddleOCR language model name such as `'korean_PP-OCRv5_mobile_rec'`, or a callable accepting a BGR crop and returning `(text, confidence)`."],
 } %}
 {% if not params %}
 {% for param, details in default_params.items() %}

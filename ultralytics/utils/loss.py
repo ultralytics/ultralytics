@@ -1425,9 +1425,9 @@ class SemanticSegmentationLoss(nn.Module):
             weight = torch.from_numpy(CITYSCAPES_WEIGHT)
         weight = None if weight is None else weight.to(device=self.device, dtype=self.dtype)
         if self.nc == 1:
-            self.ce = nn.BCEWithLogitsLoss(reduction="sum")  # binary: class weighting intentionally unsupported
+            self.ce = nn.BCEWithLogitsLoss(reduction="none")  # binary: class weighting intentionally unsupported
         else:
-            self.ce = nn.CrossEntropyLoss(ignore_index=255, reduction="sum").to(device=self.device, dtype=self.dtype)
+            self.ce = nn.CrossEntropyLoss(ignore_index=255, reduction="none").to(device=self.device, dtype=self.dtype)
             if weight is not None:
                 # Non-persistent: weight is a deterministic constant, no need to serialize into ckpt state_dict.
                 self.ce.register_buffer("weight", weight, persistent=False)
@@ -1441,17 +1441,16 @@ class SemanticSegmentationLoss(nn.Module):
         return masks
 
     def _ce_loss(self, preds, masks, valid):
-        """Compute cross-entropy (BCE when nc == 1) on flattened pixels to avoid the CUDA nll_loss2d path."""
+        """Sum per-pixel cross-entropy (BCE when nc == 1), as CUDA nll_loss2d sums nondeterministically."""
         flat = masks.reshape(-1)
         if self.nc == 1:
-            logits = preds.reshape(-1)[valid]
+            preds = preds.reshape(-1)[valid]
             target = flat[valid].float()
             denominator = valid.sum()
         else:
-            logits = preds.permute(0, 2, 3, 1).reshape(-1, self.nc)
-            target = flat.long()
-            denominator = valid.sum() if self.ce.weight is None else self.ce.weight[target[valid]].sum()
-        return self.ce(logits, target) / (denominator + (denominator == 0))  # weight sums may be <1, guard only 0
+            target = masks.long()
+            denominator = valid.sum() if self.ce.weight is None else self.ce.weight[flat[valid].long()].sum()
+        return self.ce(preds, target).sum() / (denominator + (denominator == 0))  # weight sums may be <1, guard only 0
 
     def _dice_loss(self, preds, masks, valid):
         """Compute Dice loss excluding ignore pixels."""

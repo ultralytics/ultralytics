@@ -6,6 +6,7 @@ from __future__ import annotations
 import time
 from contextlib import contextmanager
 from copy import copy
+from io import BytesIO
 from pathlib import Path
 from typing import Any
 
@@ -34,6 +35,8 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
         >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
 
     Notes:
+        - Images are returned upright, with EXIF orientation applied, for every format and flag, so labels and
+          predictions share the frame viewers display.
         - Only cv2.IMREAD_UNCHANGED stacks the same-size pages of a multi-page grayscale TIFF as channels and keeps
           every band of a color TIFF, such as alpha or near-infrared. Other flags, and TIFFs with mixed page sizes such
           as Cloud Optimized GeoTIFFs, return the first page, so scanned documents read as one page.
@@ -57,7 +60,11 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
     if im is None and filename.lower().endswith(PIL_FALLBACK_SUFFIXES):
         im = _imread_pil(filename, flags)  # EXIF-aware
     if im is None:
-        im = cv2.imdecode(file_bytes, flags)
+        # cv2 leaves an image as stored with IMREAD_UNCHANGED, and a WebP with any flag before 5.0
+        stored = flags == cv2.IMREAD_UNCHANGED or bytes(file_bytes[8:12]) == b"WEBP"
+        im = cv2.imdecode(file_bytes, flags | cv2.IMREAD_IGNORE_ORIENTATION if stored else flags)
+        if stored and im is not None:
+            im = _exif_transpose(im, memoryview(file_bytes))
     if im is not None and im.dtype == np.uint16 and (flags == cv2.IMREAD_UNCHANGED or not flags & cv2.IMREAD_ANYDEPTH):
         im = (im >> 8).astype(np.uint8)
     return im[..., None] if im is not None and im.ndim == 2 else im  # Always ensure 3 dimensions
@@ -120,6 +127,30 @@ def _imread_pil(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | No
             return cv2.cvtColor(np.asarray(img.convert("RGB")), cv2.COLOR_RGB2BGR)
     except Exception:
         return None
+
+
+def _exif_transpose(im: np.ndarray, data: memoryview) -> np.ndarray:
+    """Return a decoded image upright by applying the EXIF orientation of its encoded bytes, as cv2 color reads do."""
+    if data[:4] == b"\x89PNG":  # Pillow decodes a whole PNG to look for a late eXIf chunk, so walk its chunks first
+        i = 8
+        while i + 8 <= len(data) and data[i + 4 : i + 8] != b"eXIf":
+            i += 12 + int.from_bytes(data[i : i + 4], "big")
+        if i + 8 > len(data):
+            return im
+    elif data[:2] != b"\xff\xd8" and data[8:12] != b"WEBP":  # not JPEG or WebP: cv2 orients a TIFF itself
+        return im
+    try:
+        with _image_open(BytesIO(data)) as img:
+            orientation = img.getexif().get(274, 1)
+    except Exception:
+        return im
+    if orientation in {5, 6, 7, 8}:  # transposed, then flipped as below
+        im = im.swapaxes(0, 1)
+    if orientation in {2, 3, 6, 7}:
+        im = im[:, ::-1]
+    if orientation in {3, 4, 7, 8}:
+        im = im[::-1]
+    return np.ascontiguousarray(im)
 
 
 def imread_unicode(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:

@@ -470,7 +470,7 @@ Check the section on [Resuming Interrupted Trainings](#resuming-interrupted-trai
 
 ### How do I train a model on an imbalanced dataset?
 
-Class imbalance occurs when some classes have significantly fewer examples than others in your training data. This can cause the model to perform poorly on rare classes. Ultralytics YOLO supports class weighting through the `cls_pw` argument to address this issue.
+Class imbalance occurs when some classes have significantly fewer examples than others in your training data. This can cause the model to perform poorly on rare classes. Ultralytics YOLO supports class weighting through the `cls_pw` argument to address this issue. Loss weighting works best as the last step, after collecting and oversampling the rare classes, as described in [Handling Class Imbalance](../guides/preprocessing-annotated-data.md#handling-class-imbalance).
 
 The `cls_pw` argument controls class weighting power based on inverse class frequency:
 

@@ -234,9 +234,10 @@ def test_distill_grayscale(tmp_path: Path):
     teacher = DetectionModel("yolo26n.yaml", ch=3, nc=80, verbose=False)
     teacher_path = tmp_path / "teacher.pt"
     torch.save({"model": teacher}, teacher_path)
+    teacher = load_checkpoint(teacher_path)[0]
     student = DetectionModel("yolo26n.yaml", ch=1, nc=80, verbose=False)
     student.args = SimpleNamespace(imgsz=32, dis=1.0)
-    model = DistillationModel(teacher_model=teacher_path, student_model=student)
+    model = DistillationModel(teacher_model=teacher, student_model=student)
     assert isinstance(model, DistillationModel)
     assert model.teacher_model.yaml["channels"] == 1
 

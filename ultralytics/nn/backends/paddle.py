@@ -45,15 +45,17 @@ class PaddleBackend(BaseBackend):
         if not (model_file and params_file and model_file.is_file() and params_file.is_file()):
             raise FileNotFoundError(f"Paddle model not found in {w}. Both .json and .pdiparams files are required.")
 
+        self.apply_metadata(self.read_metadata(w))
         config = pdi.Config(str(model_file), str(params_file))
         if cuda:
             config.enable_use_gpu(memory_pool_init_size_mb=2048, device_id=self.device.index or 0)
+        # oneDNN bugs PaddlePaddle/Paddle#79984, #79985; enable_use_gpu() silently no-ops on the CPU paddlepaddle wheel
+        if not config.use_gpu() and config.mkldnn_enabled() and self.task in {"obb", "depth"}:
+            config.delete_pass("inplace_pass" if self.task == "obb" else "onednn_placement_pass")
 
         self.predictor = pdi.create_predictor(config)
         self.input_handle = self.predictor.get_input_handle(self.predictor.get_input_names()[0])
         self.output_names = self.predictor.get_output_names()
-
-        self.apply_metadata(self.read_metadata(w))
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:
         """Run Baidu PaddlePaddle inference.

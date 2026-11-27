@@ -180,7 +180,7 @@ Most model workflow `yolo` commands follow one grammar, `yolo [TASK] MODE ARGS`,
 - **[Args](usage/cfg.md)** configures the command, from which [model](models/index.md) to run with `model=` to hyperparameters like `epochs` and `imgsz`.
 - **[Solutions](solutions/index.md)** is the shortcut: a finished application, like object counting or a security alarm, that skips Task and Mode entirely.
 
-Everything else supports that grammar: [Models](models/index.md) lists every architecture you can pass to `model=` — YOLO26, YOLO11, SAM 3, RT-DETR, and more — [Datasets](datasets/index.md) supplies what each Task trains on, [Guides](guides/index.md) is a broad collection of in-depth how-tos spanning hardware deployment, hyperparameter tuning, dataset conversion, and full project walkthroughs, [Integrations](integrations/index.md) connects the pipeline to the training and deployment tools you already use, and the [Reference](reference/index.md) section documents every class and function in the Python API.
+Everything else supports that grammar: [Models](models/index.md) lists every architecture you can pass to `model=` — YOLO26, YOLO11, SAM 3, RT-DETR, and more — [Datasets](datasets/index.md) supplies what each Task trains on, [Guides](guides/index.md) is a broad collection of in-depth how-tos spanning deployment, hyperparameter tuning, dataset conversion, and full project walkthroughs, [Integrations](integrations/index.md) connects the pipeline to the hardware, training, and deployment tools you already use, and the [Reference](reference/index.md) section documents every class and function in the Python API.
 
 Beyond the Python package, two more surfaces run on the same models: the [Ultralytics Platform](platform/index.md) for cloud annotation, training, and deployment, and [Ultralytics Inference](inference/index.md), a standalone Rust library and CLI for running exported models without a Python runtime.
 
@@ -228,20 +228,3 @@ For more details, visit our [Licensing](https://www.ultralytics.com/license) pag
 ### How can Ultralytics YOLO be used for real-time object tracking?
 
 Ultralytics YOLO supports efficient and customizable multi-object tracking. Call `YOLO("yolo26n.pt").track(source="path/to/video.mp4")` in Python, or run `yolo track source=path/to/video.mp4` from the command line — both work with video files, live streams, and webcam input. For a detailed guide on setting up and running object tracking, check our [Track Mode](modes/track.md) documentation, which explains the configuration and practical applications in real-time scenarios.
-
-<div align="center">
-  <br>
-  <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="3%" alt="Ultralytics GitHub"></a>
-  <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
-  <a href="https://www.linkedin.com/company/ultralytics/"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-linkedin.png" width="3%" alt="Ultralytics LinkedIn"></a>
-  <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
-  <a href="https://twitter.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" width="3%" alt="Ultralytics Twitter"></a>
-  <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
-  <a href="https://www.youtube.com/ultralytics?sub_confirmation=1"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
-  <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
-  <a href="https://www.tiktok.com/@ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" width="3%" alt="Ultralytics TikTok"></a>
-  <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
-  <a href="https://ultralytics.com/bilibili"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-bilibili.png" width="3%" alt="Ultralytics BiliBili"></a>
-  <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
-  <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
-</div>

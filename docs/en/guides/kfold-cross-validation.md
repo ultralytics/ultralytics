@@ -14,7 +14,7 @@ This guide shows how to implement [K-Fold Cross Validation](https://www.ultralyt
   <img width="800" src="https://cdn.ul.run/i/24679d9b2406fea3afbf6a4bd0f175fa.avif" alt="K-fold cross validation data splitting">
 </p>
 
-Whether your project involves the Fruit Detection dataset or a custom data source, this tutorial helps you understand and apply K-Fold Cross Validation to improve the reliability and robustness of your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models. While we're applying `k=5` folds for this tutorial, keep in mind that the optimal number of folds can vary depending on your dataset and the specifics of your project. K-Fold Cross Validation delivers the most value when your dataset is small, noisy, or highly variable; for large, diverse datasets, a [well-constructed train/val/test split](https://academy.ultralytics.com/courses/computer-vision-foundations/splits-that-tell-the-truth) is usually sufficient.
+Whether your project involves the Fruit Detection dataset or a custom data source, this tutorial helps you understand and apply K-Fold Cross Validation to estimate how well your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) model generalizes. While we're applying `k=5` folds for this tutorial, keep in mind that the optimal number of folds can vary depending on your dataset and the specifics of your project. K-Fold Cross Validation delivers the most value when your dataset is small, noisy, or highly variable; for large, diverse datasets, a [well-constructed train/val/test split](https://academy.ultralytics.com/courses/computer-vision-foundations/splits-that-tell-the-truth) is usually sufficient.
 
 ## Setup
 
@@ -246,7 +246,7 @@ Optionally, we saved our records for future reference, which could be particular
 
 Finally, we implemented the actual model training using each split in a loop, saving our training results for further analysis and comparison.
 
-This technique of K-Fold cross-validation is a robust way of making the most out of your available data, and it helps to ensure that your model performance is reliable and consistent across different data subsets. This results in a more generalizable and reliable model that is less likely to [overfit](https://www.ultralytics.com/glossary/overfitting) to specific data patterns.
+Compare the validation scores across folds to see how much performance depends on the split. Each run reuses the same pool of examples with a different fold held out. After choosing your training settings, train a fresh model on the full cross-validation pool and evaluate it on the untouched test set.
 
 Remember that although we used YOLO in this guide, these steps are mostly transferable to other machine learning models. Understanding these steps allows you to apply cross-validation effectively in your own machine learning projects.
 
@@ -254,7 +254,7 @@ Remember that although we used YOLO in this guide, these steps are mostly transf
 
 ### What is K-Fold Cross Validation and why is it useful in object detection?
 
-K-Fold Cross Validation is a technique where the dataset is divided into 'k' subsets (folds) to evaluate model performance more reliably. Each fold serves as both training and [validation data](https://www.ultralytics.com/glossary/validation-data). In the context of object detection, using K-Fold Cross Validation helps to ensure your Ultralytics YOLO model's performance is robust and generalizable across different data splits, enhancing its reliability. For detailed instructions on setting up K-Fold Cross Validation with Ultralytics YOLO, refer to [K-Fold Cross Validation with Ultralytics](#introduction).
+K-Fold Cross Validation divides your data into `k` folds. Train a fresh model on `k - 1` folds and use the remaining fold as [validation data](https://www.ultralytics.com/glossary/validation-data). Repeat until every fold has served as validation data once. The mean score estimates performance on unseen examples, and the spread shows how sensitive that estimate is to the split.
 
 ### How do I implement K-Fold Cross Validation using Ultralytics YOLO?
 

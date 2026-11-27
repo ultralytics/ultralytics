@@ -40,8 +40,9 @@ def onnx_int8_quantize(
     transform_fn,
     input_name: str = "images",
     prefix: str = "",
+    whole_graph: bool = False,
 ) -> str:
-    """Quantize an ONNX model to INT8 using ONNX Runtime static quantization.
+    """Quantize an ONNX model to QDQ INT8 using ONNX Runtime static quantization.
 
     Args:
         onnx_file (str | Path): Path to the FP32 ONNX model.
@@ -50,6 +51,7 @@ def onnx_int8_quantize(
         transform_fn (Callable): Function converting a batch dict to a float32 NCHW numpy array.
         input_name (str): Name of the ONNX graph input to feed.
         prefix (str): Prefix for log messages.
+        whole_graph (bool): Quantize every op instead of only the weighted ones; needs input-normalized head outputs.
 
     Returns:
         (str): Path to the quantized ONNX file.
@@ -61,7 +63,7 @@ def onnx_int8_quantize(
     # probs (0-1) rounds every score to 0. Excluding by node (not op_types) still calibrates all tensors, avoiding an
     # ONNX Runtime crash on the uncalibrated attention Softmax.
     model = onnx.load(onnx_file)
-    exclude = [n.name for n in model.graph.node if n.op_type not in {"Conv", "Gemm", "MatMul"}]
+    exclude = [] if whole_graph else [n.name for n in model.graph.node if n.op_type not in {"Conv", "Gemm", "MatMul"}]
     # Per-channel weight scales keep small-magnitude output channels from rounding away under one per-tensor scale
     # (INT8 depth maps go near-constant). Per-axis DequantizeLinear needs opset>=13, so opset 12 stays per-tensor.
     per_channel = next(o.version for o in model.opset_import if o.domain in {"", "ai.onnx"}) >= 13

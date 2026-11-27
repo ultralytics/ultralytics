@@ -54,6 +54,10 @@ GITHUB_ASSETS_NAMES = frozenset(
         "calibration_image_sample_data_20x128x128x3_float32.npy.zip",
         "PP-OCRv6_medium_rec.onnx",
     ]
+    + [
+        f"{k}_PP-OCRv5_mobile_rec.onnx"
+        for k in ["arabic", "cyrillic", "devanagari", "el", "en", "eslav", "korean", "latin", "ta", "te", "th"]
+    ]
 )
 GITHUB_ASSETS_STEMS = frozenset(k.rpartition(".")[0] for k in GITHUB_ASSETS_NAMES)
 
@@ -569,8 +573,8 @@ def attempt_download_asset(
         # URL specified
         name = Path(parse.unquote(str(file))).name  # decode '%2F' to '/' etc.
         download_url = f"https://github.com/{repo}/releases/download"
-        if str(file).lower().startswith(("http:/", "https:/")):  # download
-            url = str(file).replace(":/", "://")  # Pathlib turns :// -> :/
+        if file.as_posix().lower().startswith(("http:/", "https:/")):  # download
+            url = file.as_posix().replace(":/", "://")  # Pathlib turns :// -> :/, as_posix() for Windows
             file = url2file(name)  # parse authentication query strings
             if Path(file).is_file():
                 LOGGER.info(f"Found {clean_url(url)} locally at {file}")  # file already exists

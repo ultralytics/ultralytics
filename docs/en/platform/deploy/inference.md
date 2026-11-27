@@ -114,6 +114,9 @@ in the list. With more than 10 results, the image shows boxes without labels so 
 list names each result, and the enlarged image keeps the labels. On wide screens the results card can grow up to the
 height of the input card, so long lists, such as a crowded retail shelf, stay readable.
 
+A model's Predict tab returns up to 1,000 results per image. RT-DETR models return at most 300, the number of queries in
+their decoder.
+
 ## Inference Parameters
 
 Adjust inference behavior with the three sliders below the image (depth models show only **Image Size**):

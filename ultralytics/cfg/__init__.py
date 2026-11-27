@@ -12,6 +12,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
+import numpy as np
+
 from ultralytics import __version__
 from ultralytics.utils import (
     ASSETS,
@@ -248,6 +250,7 @@ CFG_FRACTION_KEYS = frozenset(
         "fraction",
         "multi_scale",
         "dlam",
+        "tile_overlap",
     }
 )
 CFG_INT_KEYS = frozenset(
@@ -433,6 +436,8 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
     """
     typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | CFG_STR_KEYS | {"scale", "compile"}
     for k, v in cfg.items():
+        if isinstance(v, np.generic):  # NumPy scalars (np.arange() sweeps, Ray Tune searchers) as Python values
+            cfg[k] = v = v.item()
         if v is None and (
             k == "amp" or (DEFAULT_CFG_DICT.get(k) is not None and k in typed_keys and k != "auto_augment")
         ):
@@ -510,8 +515,10 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                 if hard:
                     raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. '{k}' must be a str.")
                 cfg[k] = str(v)
-            elif k == "tile" and not isinstance(v, bool) and (not isinstance(v, int) or v <= 0):
-                raise ValueError(f"'{k}={v}' is invalid. Valid '{k}' values are False, True, or a positive int.")
+            elif k == "tile" and not isinstance(v, bool):
+                s = [v, v] if isinstance(v, int) else v
+                if not (isinstance(s, (list, tuple)) and len(s) == 2 and all(isinstance(x, int) and x > 0 for x in s)):
+                    raise ValueError(f"'{k}={v}' is invalid. Valid '{k}' values are False, True, an int or [h, w] > 0.")
             elif k == "compile" and not isinstance(v, (bool, str)):  # False=off, True="default", or a mode string
                 if hard:
                     raise TypeError(

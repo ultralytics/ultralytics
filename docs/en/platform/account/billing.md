@@ -14,13 +14,13 @@ Ultralytics Enterprise License for commercial use. Every plan uses credits for m
 [batch annotation](../data/annotation.md#batch-annotation), and custom-resource endpoint uptime. Add credits, track
 usage, and manage your subscription from `Settings > Billing`.
 
-![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/9e97863665b58a2b009f700b0df120e9.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/13a13fe33434819e8a484f49030883a7.avif)<!-- screenshot -->
 
 ## Plans
 
 Choose the plan that fits your needs. Compare plans in `Settings > Plans` or on the [Ultralytics pricing page](https://www.ultralytics.com/pricing):
 
-![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/cad040a8c00329e621ab2d0c0cf53b5f.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/35c3ef00fbda8e1c50216c655530a649.avif)<!-- screenshot -->
 
 {% include "macros/platform-plan-comparison.md" %}
 
@@ -34,7 +34,7 @@ Get started at no cost:
 - 3 concurrent cloud training jobs
 - 3 cloud deployments
 - 100 GB storage · 10 GB dataset upload limit
-- Model export to all 23 formats
+- Model export to all 24 formats
 - Manual, SAM 3.1, and YOLO Smart annotation
 - 24 cloud GPU types including 5090, H100 & H200
 - Community support
@@ -89,7 +89,7 @@ Credits are the currency for Platform compute services.
 
 View your balance in `Settings > Billing`:
 
-![Ultralytics Platform Settings Billing Tab Credit Balance With Topup Button](https://cdn.ul.run/i/f45c7ce61c718d4a2517cbffcaece256.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Credit Balance With Topup Button](https://cdn.ul.run/i/8974d3885fc14ad3f9cac4e95e816145.avif)<!-- screenshot -->
 
 | Balance Type  | Description                           |
 | ------------- | ------------------------------------- |
@@ -314,7 +314,7 @@ When your Pro subscription ends (cancelled or expired), your account reverts to 
 View all transactions in `Settings > Billing`. The table covers the selected date range (last 30 days by default),
 supports free-text search across every field, and exports to CSV or JSON from the menu in the card header.
 
-![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.ul.run/i/706d984e623d641af877e83e1d08997c.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.ul.run/i/77071bca936ef6049a3209af275c26d2.avif)<!-- screenshot -->
 
 | Column          | Description                                                                           |
 | --------------- | ------------------------------------------------------------------------------------- |

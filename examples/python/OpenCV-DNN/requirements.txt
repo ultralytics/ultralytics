@@ -1,3 +1,2 @@
 numpy
 opencv-python
-ultralytics

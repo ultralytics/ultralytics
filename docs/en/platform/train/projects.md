@@ -24,7 +24,7 @@ flowchart TD
 
 Open **Train** in the sidebar and click the `+` to open the **New Project** dialog.
 
-![Ultralytics Platform Projects List](https://cdn.ul.run/i/f491b7c8354cc79945be1fd47aa1f4cf.avif)<!-- screenshot -->
+![Ultralytics Platform Projects List](https://cdn.ul.run/i/a976e5512033a2c33eb701337fea1724.avif)<!-- screenshot -->
 
 ??? tip "Quick Create"
 
@@ -35,10 +35,10 @@ Enter your project details:
 - **Name**: A descriptive name for your project (a random name is auto-generated)
 - **URL**: The project slug, generated from the name and editable before creation
 - **Description**: Optional notes about the project purpose
-- **Visibility**: Public (anyone can view) or Private (only you and your team members can access). New projects start with the workspace's [default visibility](../account/settings.md#default-visibility).
 - **License**: Optional license for your project (None, Apache-2.0, MIT, BSD-3-Clause, AGPL-3.0, GPL-3.0, LGPL-3.0, MPL-2.0, EUPL-1.1, Unlicense, CC0-1.0, Ultralytics-Enterprise, or Other). The **Ultralytics-Enterprise** license is for commercial use without AGPL requirements and is available with an Enterprise plan — see [Ultralytics Licensing](https://www.ultralytics.com/license). Enterprise workspaces preselect it for new projects.
+- **Visibility**: Public (anyone can view) or Private (only you and your team members can access). New projects start with the workspace's [default visibility](../account/settings.md#default-visibility).
 
-![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.ul.run/i/659b6394cfacc217746ce3bb800d0054.avif)<!-- screenshot -->
+![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.ul.run/i/4e536beb417c68482b26266e81f401b5.avif)<!-- screenshot -->
 
 Click **Create Project** to finalize. Your new project appears in the Projects list and sidebar.
 
@@ -53,7 +53,7 @@ The project page has two main areas:
 
 A controls row above both areas holds the model search box, **Compare with AI** (Editor role or higher, once the project has two or more completed models), the **Diff** toggle (table view only, badged with how many columns differ), the view-options dropdown, and the view-mode toggle. On desktop, the controls row and models sidebar stay in view while the charts or table scroll.
 
-![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.ul.run/i/4ebc844d81876e0499e28cf106859b4a.avif)<!-- screenshot -->
+![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.ul.run/i/2b7c23210ca96498de93671f3b8e71e8.avif)<!-- screenshot -->
 
 ### Project Header
 
@@ -87,7 +87,7 @@ Toggle between three view modes using the view controls. The selected mode is re
 - **Compact**: Condensed models sidebar with the Charts dashboard on the right — more vertical room for models in projects with many experiments.
 - **Table**: Comparison table showing training arguments and final metrics side by side. Enable **Diff** to show only the columns where values differ across models.
 
-![Ultralytics Platform Project Comparison Table View](https://cdn.ul.run/i/37fcd9ad499485c91fdaab7089f2c7b9.avif)<!-- screenshot -->
+![Ultralytics Platform Project Comparison Table View](https://cdn.ul.run/i/c33210932cf4a0f40a0fd0051b62d4c0.avif)<!-- screenshot -->
 
 ### Filter and Sort
 

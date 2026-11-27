@@ -25,7 +25,7 @@ Ultralytics supports datasets for [computer vision](https://www.ultralytics.com/
 
 - [African-wildlife](detect/african-wildlife.md): A dataset featuring images of African wildlife, including buffalo, elephants, rhinos, and zebras.
 - [Argoverse](detect/argoverse.md): A dataset containing 3D tracking and motion forecasting data from urban environments with rich annotations.
-- [Brain-tumor](detect/brain-tumor.md): A dataset for detecting brain tumors that includes MRI or CT scan images with details on tumor presence, location, and characteristics.
+- [Brain-tumor](detect/brain-tumor.md): A dataset for detecting brain tumors in brain MRI images, with tumors labeled by bounding boxes in a single class.
 - [COCO](detect/coco.md): Common Objects in Context (COCO) is a large-scale object detection, segmentation, and captioning dataset with 80 object categories.
 - [COCO8](detect/coco8.md): A smaller subset of the first 8 images from COCO train2017, 4 for training and 4 for validation, suitable for quick tests.
 - [COCO8-Grayscale](detect/coco8-grayscale.md): A grayscale version of COCO8 created by converting RGB to grayscale, useful for single-channel model evaluation.
@@ -119,6 +119,7 @@ Oriented Bounding Boxes (OBB) is a method in computer vision for detecting angle
 - [DOTA-v2](obb/dota-v2.md): A popular OBB aerial imagery dataset with 1.7 million instances and 11,268 images.
 - [DOTA8](obb/dota8.md): A smaller subset of the first 8 images from the DOTAv1 split set, 4 for training and 4 for validation, suitable for quick tests.
 - [DOTA128](obb/dota128.md): A 128-image subset of DOTAv1 used for both training and validation, providing a good balance between size and diversity for testing OBB models.
+- [Scene Text](obb/scene-text.md): A 65,325-image dataset combining COCO-Text and HierText with 1.29 million legible word polygons for scene-text OBB training.
 
 ## Contribute New Datasets
 

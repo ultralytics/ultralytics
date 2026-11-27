@@ -136,7 +136,7 @@ Use the [`convert_coco()`](../reference/data/converter.md#ultralytics.data.conve
         )
         ```
 
-`convert_coco()` writes one `.txt` file per annotated image into a `labels/` subdirectory named after each JSON file, with the `instances_` prefix removed (so `instances_train.json` produces `labels/train/`). Images with no annotations are skipped and get no label file, so the `labels/` tree may not mirror every image:
+`convert_coco()` writes one `.txt` file per annotated image into a `labels/` subdirectory named after each JSON file, with the `instances_` prefix removed (so `instances_train.json` produces `labels/train/`). A `file_name` with subfolders, such as `sub/img_001.jpg`, keeps them (`labels/train/sub/img_001.txt`), while an absolute path or one containing `..`, as some Label Studio COCO exports write, keeps only the file name (`labels/train/img_001.txt`). Images with no annotations are skipped and get no label file, so the `labels/` tree may not mirror every image:
 
 ```text
 my_dataset/converted/

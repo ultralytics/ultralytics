@@ -1,4 +1,5 @@
 ---
+title: FastSAM Real-Time Segment Anything Model
 comments: true
 description: FastSAM is a real-time, CNN-based Segment Anything model built on YOLOv8-seg. Learn its architecture, prompt types, speed versus SAM, and Ultralytics usage.
 keywords: FastSAM, Fast Segment Anything Model, Ultralytics, real-time segmentation, instance segmentation, FastSAM vs YOLO, FastSAM vs SAM, YOLOv8-seg, YOLO26-seg, zero-shot segmentation, object segmentation

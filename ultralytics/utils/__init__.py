@@ -986,6 +986,30 @@ def read_device_model() -> str:
     return platform.release().lower()
 
 
+def cpu_threads(n: int) -> int:
+    """Cap an inference runtime's CPU thread count, on Linux, at the CPUs the process may use.
+
+    Runtimes such as ONNX Runtime and NCNN size their default pools to the host's cores, ignoring the affinity mask
+    (`taskset`, Docker `--cpuset-cpus`) and a cgroup v2 CPU quota (Docker `--cpus`, Kubernetes CPU limits, systemd
+    `CPUQuota`) on the process cgroup or any of its ancestors.
+
+    Args:
+        n (int): Thread count the runtime would use.
+
+    Returns:
+        (int): Thread count, at least 1.
+    """
+    if LINUX:
+        n = min(n, len(os.sched_getaffinity(0)))
+        proc = Path("/proc/self/cgroup")
+        own = next((s[3:] for s in proc.read_text().splitlines() if s.startswith("0::")), "") if proc.is_file() else ""
+        cg = Path("/sys/fs/cgroup" + own)
+        for cpu_max in (d / "cpu.max" for d in (cg, *cg.parents)):
+            if cpu_max.is_file() and (q := cpu_max.read_text().split())[0] != "max":
+                n = min(n, int(q[0]) // int(q[1]))
+    return max(1, n)
+
+
 def is_ubuntu() -> bool:
     """Check if the OS is Ubuntu.
 
@@ -1525,7 +1549,12 @@ def set_sentry():
         dsn="https://888e5a0778212e1d0314c37d4b9aae5d@o4504521589325824.ingest.us.sentry.io/4504521592406016",
         debug=False,
         auto_enabling_integrations=False,
-        include_local_variables=False,
+        # sentry-sdk 3 replaced include_local_variables with data_collection
+        **(
+            {"data_collection": {"stack_frame_variables": False}}
+            if int(sentry_sdk.VERSION.split(".")[0]) >= 3
+            else {"include_local_variables": False}
+        ),
         traces_sample_rate=1.0,
         release=__version__,
         environment="runpod" if is_runpod() else "production",

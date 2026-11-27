@@ -154,7 +154,7 @@ class GMC:
 
         # Run the ECC algorithm to find transformation matrix
         try:
-            (_, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria, None, 1)
+            (_, H) = cv2.findTransformECC(self.prevFrame, frame, H.copy(), self.warp_mode, self.criteria, None, 1)
             H[:, 2] *= (width / frame.shape[1], height / frame.shape[0])
         except Exception as e:
             LOGGER.warning(f"findTransformECC failed; using identity warp. {e}")
@@ -312,8 +312,8 @@ class GMC:
         # Find good features to track
         keypoints = cv2.goodFeaturesToTrack(frame, mask=None, **self.feature_params)
 
-        # Handle first frame initialization
-        if not self.initializedFirstFrame or self.prevKeyPoints is None:
+        # Start a new optical-flow history when the previous frame or keypoints can't be reused
+        if not self.initializedFirstFrame or self.prevKeyPoints is None or self.prevFrame.shape != frame.shape:
             self.prevFrame = frame.copy()
             self.prevKeyPoints = copy.copy(keypoints)
             self.initializedFirstFrame = True

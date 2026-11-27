@@ -643,6 +643,12 @@ def test_export_qnn(isolated_model):
     Path(file).unlink(missing_ok=True)  # cleanup
 
 
+def test_export_stedgeai(isolated_model):
+    """Test YOLO export to whole-graph INT8 ONNX for ST Edge AI Core."""
+    file = YOLO(isolated_model).export(format="stedgeai", imgsz=32, quantize=8, data="coco8.yaml", fraction=0.25)
+    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+
+
 @pytest.mark.parametrize("env", [k for k, v in EXPORT_ENVS.items() if k != "base" or v["smoke"]])
 def test_export_env_has_smoke(env):
     """Ensure every non-base export environment declares a build-time smoke export."""

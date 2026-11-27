@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, explore, public datasets, public models, pretrai
 
 The [Ultralytics Platform](https://platform.ultralytics.com) Explore page lists public content from the community. Find [datasets](data/datasets.md) to train on, trained [models](train/models.md) by what they detect, and [projects](train/projects.md) for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
 
-![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.ul.run/i/0ef70bb4ebae864538173f1176c2e674.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.ul.run/i/aa41f16b33033de1894721eacbbdadd5.avif)<!-- screenshot -->
 
 ```mermaid
 flowchart TD
@@ -29,10 +29,10 @@ flowchart TD
 The Explore page features four tabs:
 
 - **Public Datasets**: Community training data with image previews
-- **Search Images**: Images from public datasets, and from your own and team datasets when signed in, found by what
-  they show
-- **Public Models**: Trained models found by what they detect, each with its training images and headline metrics
+- **Search Images**: Images from public datasets only, found by what they show. To include your own and team datasets, use
+  [Find similar images](data/datasets.md#find-similar-images) in the dataset editor.
 - **Public Projects**: Complete experiments containing trained models
+- **Public Models**: Trained models found by what they detect, each with its training images and headline metrics
 
 Only datasets that contain at least one image and projects that contain at least one model appear on Explore, so empty
 placeholders never surface in results.
@@ -41,36 +41,36 @@ placeholders never surface in results.
 
 ### Tabs
 
-The Explore page uses a tabbed interface with `Datasets`, `Images`, `Models`, and `Projects` tabs. Each tab has its own search; the Datasets, Models, and Projects tabs also have sort and view mode controls.
+The Explore page uses a tabbed interface with `Datasets`, `Images`, `Projects`, and `Models` tabs. Each tab has its own search; the Datasets, Projects, and Models tabs also have sort and view mode controls.
 
 | Tab          | Description                                       |
 | ------------ | ------------------------------------------------- |
 | **Datasets** | Labeled image collections for training (default)  |
 | **Images**   | Images found by what they show                    |
-| **Models**   | Trained models found by what they detect          |
 | **Projects** | Organized model collections with training results |
+| **Models**   | Trained models found by what they detect          |
 
 ### Search
 
 Each tab has its own search bar. Results update as you type and the query is kept in the URL as `?q=`, so a search is
 easy to bookmark or share.
 
-![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.ul.run/i/3dd1531ea3532850784aa8a2f9e12b50.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.ul.run/i/105a2c60370c941f1f09cff1e0f576d6.avif)<!-- screenshot -->
 
 | Tab          | Matched Fields                                                                                           |
 | ------------ | -------------------------------------------------------------------------------------------------------- |
 | **Datasets** | Name, description, owner username, tags, and class names                                                 |
 | **Images**   | What the image shows                                                                                     |
-| **Models**   | Model name; the project's name, description, owner username, and tags; and what its training images show |
 | **Projects** | Name, description, owner username, and tags                                                              |
+| **Models**   | Model name; the project's name, description, owner username, and tags; and what its training images show |
 
 On the Datasets tab, datasets that match the fields above come first, followed by datasets whose images match the
 search, and their cards show the matching images. Searching an official dataset's name or address (such as `HIT-UAV` or
 `hit uav`) puts the official `@ultralytics` dataset above copies that share its name. Before you search, the Images tab
 lists one image from each of the newest public datasets. Search it by what images show with
 [semantic search](https://www.ultralytics.com/glossary/semantic-search): describe a scene such as `cats on a sofa`. Click any image to open a side panel with its annotations, source dataset, class counts, and license, followed by up to
-24 similar images, including ones from the same dataset, when you are signed in; click one to open it in the panel. On
-narrow screens such as phones, the image opens full size instead.
+24 similar images from public datasets when you are signed in. Matches can come from the same dataset. Click a match
+to open it in the panel. On narrow screens such as phones, the image opens full size instead.
 
 To search by a photo instead, click the search-by-image icon in the Datasets, Images, or Models search bar, or drop an
 image onto the page. iPhone HEIC photos work too: the browser converts them to JPEG before searching. The Images tab
@@ -85,7 +85,7 @@ Projects tab.
 On the Models tab, describe what you need to detect, such as `hard hat` or `aerial drones`, to find public trained
 models even when no model or project name contains your words.
 
-![Ultralytics Platform Explore Models Tab Search Results](https://cdn.ul.run/i/c703819d8a01ffbbc0b4454be6bb37c7.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Models Tab Search Results](https://cdn.ul.run/i/f148f38b26d70c38e32a94288661468b.avif)<!-- screenshot -->
 
 Results are ranked in three tiers:
 
@@ -104,7 +104,7 @@ Click a card to open the model, then test it from its `Predict` tab, [clone it](
 
 ### Sort and Filter
 
-The dropdown in the toolbar holds sort options on the Datasets, Models, and Projects tabs and filters on all four tabs.
+The dropdown in the toolbar holds sort options on the Datasets, Projects, and Models tabs and filters on all four tabs.
 The Models tab sorts by **Relevance** or **Created** only:
 
 | Sort Option             | Description                                                                               |
@@ -121,6 +121,12 @@ The Models tab sorts by **Relevance** or **Created** only:
 | **My starred**  | Datasets, Images, Projects | Signed in only | Show only datasets or projects you have starred, or images from those datasets                   |
 | **Image count** | Datasets                   | Everyone       | Show only datasets with **Under 1K**, **1K – 10K**, **10K – 100K**, or **100K+** images          |
 | **License**     | Datasets, Images, Projects | Everyone       | Show only datasets (or images from them) or projects published under the selected licenses       |
+
+On the Datasets and Images tabs, the **License** filter groups licenses as **Commercial** and **Research and community**,
+the same groups as [Find similar images](data/datasets.md#find-similar-images), except that datasets with no license
+(`None`) can't be selected. Click a group to select or clear all of its licenses, or open it with its arrow to pick
+single licenses; searching opens every group with a match. When the selection is exactly one or both whole groups, the
+filter button names them; otherwise it shows the license count. The Projects tab lists its software licenses without groups.
 
 Sorting and filtering are also stored in the URL (`dsort`, `msort`, `psort`, `task`, `starred`, `imageCount`,
 `license`, and `plicense`), so the browser back button restores the previous result list.
@@ -147,7 +153,7 @@ and keeps the filters in the dropdown.
 
 Each item displays:
 
-![Ultralytics Platform Explore Dataset And Project Cards](https://cdn.ul.run/i/7b5e6ec948e6d55caa8b222e7ff5bd2e.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Projects Tab With Project Cards](https://cdn.ul.run/i/800937ab5fd6ef8d07f5e33a9ace6a73.avif)<!-- screenshot -->
 
 === "Project Cards"
 
@@ -212,11 +218,12 @@ flowchart TD
 Use a public dataset for your training:
 
 1. Click on the dataset to open its detail page
-2. Click `Clone Dataset`
+2. Click **Clone Dataset**
 3. Review the destination workspace, name, visibility, and license
-4. Click `Clone Dataset` to confirm
+4. Click **Clone Dataset** to confirm
+5. Open the copy and [train on it](data/datasets.md#train-on-dataset)
 
-![Ultralytics Platform Explore Clone Dataset](https://cdn.ul.run/i/61c009c013d2a84cc83418a37d427318.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Clone Dataset](https://cdn.ul.run/i/47c61832cd85e86056b1a58e8c32a8f7.avif)<!-- screenshot -->
 
 !!! note "Cloned Dataset Properties"
 

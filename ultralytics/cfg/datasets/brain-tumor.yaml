@@ -6,17 +6,16 @@
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── brain-tumor ← downloads here (4.21 MB)
+#     └── brain-tumor ← downloads here (4.06 MB)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 path: brain-tumor # dataset root dir
-train: images/train # train images (relative to 'path') 893 images
-val: images/val # val images (relative to 'path') 223 images
+train: images/train # train images (relative to 'path') 994 images
+val: images/val # val images (relative to 'path') 121 images
 
 # Classes
 names:
-  0: negative
-  1: positive
+  0: tumor
 
 # Download script/URL (optional)
 download: https://github.com/ultralytics/assets/releases/download/v0.0.0/brain-tumor.zip

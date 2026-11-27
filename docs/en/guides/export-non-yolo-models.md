@@ -1,5 +1,5 @@
 ---
-title: Export Any PyTorch Model to ONNX & More
+title: Export PyTorch Models to ONNX & More
 comments: true
 description: Export any PyTorch model (timm, torchvision, or custom) to ONNX, OpenVINO, CoreML, TensorFlow, and more through one Ultralytics API, with no per-backend code.
 keywords: export PyTorch model, convert PyTorch to ONNX, PyTorch to CoreML, PyTorch to OpenVINO, PyTorch to TensorFlow, non-YOLO export, timm export, torchvision export, TorchScript export, NCNN export, MNN export, PaddlePaddle export, ExecuTorch export, Core AI export, LiteRT export, Ultralytics export utilities, torch.nn.Module export, model conversion, model deployment, PyTorch deployment
@@ -42,7 +42,7 @@ The `torch2*` functions take a standard `torch.nn.Module` and an example input t
 | ONNX            | [`torch2onnx()`](../reference/utils/export/engine.md)             | `pip install onnx`                                                                               | `.onnx` file                   |
 | OpenVINO        | [`torch2openvino()`](../reference/utils/export/openvino.md)       | `pip install openvino`                                                                           | `_openvino_model/` directory   |
 | CoreML          | [`torch2coreml()`](../reference/utils/export/coreml.md)           | `pip install coremltools`                                                                        | `.mlpackage`                   |
-| Core AI         | [`torch2coreai()`](../reference/utils/export/coreai.md)           | `pip install coreai-torch` (Apple silicon macOS 26+, x86_64 Linux glibc 2.34+; Python 3.11-3.14) | `.aimodel` directory           |
+| Core AI         | [`torch2coreai()`](../reference/utils/export/coreai.md)           | `pip install coreai-torch` (Apple silicon macOS 26+, x86_64 Linux glibc 2.34+; Python 3.11-3.15) | `.aimodel` directory           |
 | TF SavedModel   | [`onnx2saved_model()`](../reference/utils/export/tensorflow.md)   | [see detailed requirements below](#export-to-tensorflow-savedmodel)                              | `_saved_model/` directory      |
 | TF Frozen Graph | [`keras2pb()`](../reference/utils/export/tensorflow.md)           | [see detailed requirements below](#export-to-tensorflow-savedmodel)                              | `.pb` file                     |
 | PaddlePaddle    | [`torch2paddle()`](../reference/utils/export/paddle.md)           | `pip install paddlepaddle x2paddle six`                                                          | `_paddle_model/` directory     |
@@ -152,7 +152,7 @@ resnet18.aimodel/
 └── metadata.json
 ```
 
-Export runs on macOS 26 or later on Apple silicon, or on x86_64 Linux with glibc 2.34 or newer, with Python 3.11 to 3.14 (`pip install coreai-torch`), and `quantize=16` writes an FP16 asset that takes float16 inputs; the asset runs on iOS 27 and macOS 27. See the [Core AI integration](../integrations/coreai.md), including its note on FP16 assets that abort on load.
+Export runs on macOS 26 or later on Apple silicon, or on x86_64 Linux with glibc 2.34 or newer, with Python 3.11 to 3.15 (`pip install coreai-torch`), and `quantize=16` writes an FP16 asset that takes float16 inputs; the asset runs on iOS 27 and macOS 27. See the [Core AI integration](../integrations/coreai.md), including its note on FP16 assets that abort on load.
 
 ### Export to TensorFlow SavedModel
 

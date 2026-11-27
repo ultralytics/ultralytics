@@ -30,7 +30,6 @@ from ultralytics.utils import (
     GIT,
     IS_COLAB,
     IS_DOCKER,
-    IS_JETSON,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
     LINUX,
@@ -680,12 +679,15 @@ def check_executorch_requirements():
 def check_tensorrt(min_version: str = "7.0.0"):
     """Check and install TensorRT requirements including platform-specific dependencies.
 
+    An installed `tensorrt-cu{N}` or `tensorrt` distribution (as shipped in NVIDIA containers and JetPack) satisfies the
+    check; otherwise `tensorrt-cu{N}` matching the PyTorch CUDA major version is installed.
+
     Args:
         min_version (str): Minimum supported TensorRT version (default: "7.0.0").
     """
     if LINUX:
-        cuda_version = torch.version.cuda.split(".")[0]
-        check_requirements(f"tensorrt-cu{cuda_version}>={min_version},!=10.2.0")
+        spec = f">={min_version},!=10.2.0"
+        check_requirements([(f"tensorrt-cu{torch.version.cuda.split('.')[0]}{spec}", f"tensorrt{spec}")])
 
 
 def check_torchvision():
@@ -1139,35 +1141,19 @@ def print_args(args: dict | None = None, show_file=True, show_func=False):
 
 
 def cuda_device_count() -> int:
-    """Get the number of NVIDIA GPUs available in the environment.
+    """Get the number of NVIDIA or AMD GPUs visible to PyTorch.
 
     Returns:
-        (int): The number of NVIDIA GPUs available.
+        (int): The number of GPUs available to PyTorch CUDA.
     """
-    if IS_JETSON:
-        # NVIDIA Jetson does not fully support nvidia-smi and therefore use PyTorch instead
-        return torch.cuda.device_count()
-    else:
-        try:
-            # Run the nvidia-smi command and capture its output
-            output = subprocess.check_output(
-                ["nvidia-smi", "--query-gpu=count", "--format=csv,noheader,nounits"], encoding="utf-8"
-            )
-
-            # Take the first line and strip any leading/trailing white space
-            first_line = output.strip().split("\n", 1)[0]
-
-            return int(first_line)
-        except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
-            # If the command fails, nvidia-smi is not found, or output is not an integer, assume no GPUs are available
-            return 0
+    return torch.cuda.device_count()
 
 
 def cuda_is_available() -> bool:
     """Check if CUDA is available in the environment.
 
     Returns:
-        (bool): True if one or more NVIDIA GPUs are available, False otherwise.
+        (bool): True if one or more NVIDIA or AMD GPUs are available, False otherwise.
     """
     return cuda_device_count() > 0
 
@@ -1242,3 +1228,5 @@ IS_PYTHON_MINIMUM_3_11 = check_python("3.11", hard=False)
 IS_PYTHON_MINIMUM_3_13 = check_python("3.13", hard=False)
 
 ONNXRUNTIME_BUILDS = "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai", "onnxruntime-windowsml"
+# PyPI onnxruntime-gpu 1.27+ is CUDA 13 only, so cap CUDA 12 torch (no aarch64 wheels before 1.27, so not ARM64)
+ONNXRUNTIME_CUDA = f"onnxruntime-gpu[cuda]{'<1.27' * (not ARM64 and str(torch.version.cuda)[:3] == '12.')}"

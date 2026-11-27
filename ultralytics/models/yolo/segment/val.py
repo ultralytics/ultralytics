@@ -11,8 +11,7 @@ import torch.nn.functional as F
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
-from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.metrics import SegmentMetrics, mask_iou
+from ultralytics.utils.metrics import SegmentMetrics, _mask_areas, mask_iou
 
 
 class SegmentationValidator(DetectionValidator):
@@ -50,6 +49,10 @@ class SegmentationValidator(DetectionValidator):
     def preprocess_targets(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Move segmentation targets to the device as float32.
 
+        With `overlap_mask` during training, `masks` becomes the loss's layout (one map per image where j + 1 marks the
+        image's j-th object and smaller objects cover larger ones) and the per-object masks move to `instance_masks`
+        for scoring.
+
         Args:
             batch (dict[str, Any]): Batch containing images and annotations.
 
@@ -58,6 +61,13 @@ class SegmentationValidator(DetectionValidator):
         """
         batch = super().preprocess_targets(batch)
         batch["masks"] = batch["masks"].float()
+        if self.training and self.args.overlap_mask:
+            masks, idx = batch["masks"], batch["batch_idx"].long()
+            n = torch.bincount(idx, minlength=len(batch["img"]))
+            slots = masks.new_zeros(len(n), int(n.max()) + 1, *masks.shape[1:])  # slot j + 1 holds object j
+            area = masks.sum((1, 2), keepdim=True).clamp(min=1)
+            slots[idx, torch.arange(len(idx), device=idx.device) - (n.cumsum(0) - n)[idx] + 1] = masks / area
+            batch.update(masks=slots.argmax(1).float(), instance_masks=masks)  # smallest covering object, 0 if none
         return batch
 
     def init_metrics(self, model: torch.nn.Module) -> None:
@@ -67,27 +77,11 @@ class SegmentationValidator(DetectionValidator):
             model (torch.nn.Module): Model to validate.
         """
         super().init_metrics(model)
-        if self.args.save_json:
-            check_requirements("faster-coco-eval>=1.6.7")
         # More accurate vs faster
         self.process = (
-            ops.process_mask_native if self.args.save_json or self.args.save_txt or self.args.tile else ops.process_mask
-        )
-
-    def get_desc(self) -> str:
-        """Return a formatted description of evaluation metrics."""
-        return ("%22s" + "%11s" * 10) % (
-            "Class",
-            "Images",
-            "Instances",
-            "Box(P",
-            "R",
-            "mAP50",
-            "mAP50-95)",
-            "Mask(P",
-            "R",
-            "mAP50",
-            "mAP50-95)",
+            ops.process_mask_native
+            if self.coco_labels is not None or self.args.save_json or self.args.save_txt or self.args.tile
+            else ops.process_mask
         )
 
     def postprocess(self, preds: list[torch.Tensor]) -> list[dict[str, torch.Tensor]]:
@@ -118,14 +112,10 @@ class SegmentationValidator(DetectionValidator):
             (dict[str, Any]): Prepared batch with processed annotations.
         """
         prepared_batch = super()._prepare_batch(si, batch)
-        nl = prepared_batch["cls"].shape[0]
-        if self.args.overlap_mask:
-            masks = batch["masks"][si]
-            index = torch.arange(1, nl + 1, device=masks.device).view(nl, 1, 1)
-            masks = (masks == index).float()
-        else:
-            masks = batch["masks"][batch["batch_idx"] == si]
-        if nl:
+        if self.coco_labels is not None and not (self.args.plots and self.args.visualize):
+            return prepared_batch  # the scorer reads the original COCO masks
+        masks = batch.get("instance_masks", batch["masks"])[batch["batch_idx"] == si]
+        if len(masks):
             native = self.process is ops.process_mask_native and not self.args.tile  # tiled targets stay at mask_ratio
             mask_size = [s if native else s // 4 for s in prepared_batch["imgsz"]]
             if masks.shape[1:] != mask_size:
@@ -133,11 +123,6 @@ class SegmentationValidator(DetectionValidator):
                 masks = masks.gt_(0.5)
         prepared_batch["masks"] = masks
         return prepared_batch
-
-    def gather_stats(self) -> None:
-        """Gather stats from all GPUs."""
-        super().gather_stats()  # gather stats from DetectionValidator
-        self._gather_image_metrics(self.metrics.seg)
 
     def _process_batch(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> dict[str, np.ndarray]:
         """Compute correct prediction matrix for a batch based on bounding boxes and optional masks.
@@ -156,7 +141,6 @@ class SegmentationValidator(DetectionValidator):
 
         Notes:
             - This method computes IoU between predicted and ground truth masks.
-            - Overlapping masks are handled based on the overlap_mask argument setting.
         """
         tp = super()._process_batch(preds, batch)
         gt_cls = batch["cls"]
@@ -210,7 +194,7 @@ class SegmentationValidator(DetectionValidator):
             masks=torch.as_tensor(predn["masks"], dtype=torch.uint8),
         ).save_txt(file, save_conf=save_conf)
 
-    def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
+    def _coco_predictions(self, predn, pbatch):
         """Save one JSON result for COCO evaluation.
 
         Args:
@@ -278,12 +262,10 @@ class SegmentationValidator(DetectionValidator):
         pred_masks = predn["masks"].transpose(2, 1).contiguous().view(len(predn["masks"]), -1)  # N, H*W
         h, w = predn["masks"].shape[1:3]
         counts = multi_encode(pred_masks)
-        rles = []
-        for c in counts:
-            rles.append({"size": [h, w], "counts": to_string(c)})
-        super().pred_to_json(predn, pbatch)
-        for i, r in enumerate(rles):
-            self.jdict[-len(rles) + i]["segmentation"] = r  # segmentation
+        records = super()._coco_predictions(predn, pbatch)
+        for record, runs in zip(records, counts):
+            record["segmentation"] = {"size": [h, w], "counts": to_string(runs)}
+        return records
 
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
         """Scale predictions to the original image size."""
@@ -291,17 +273,18 @@ class SegmentationValidator(DetectionValidator):
         if "tile" not in pbatch:  # untiled masks keep the existing COCO-evaluated rounding
             return {**super().scale_preds(predn, pbatch), "masks": masks.byte()}
         masks = masks.gt_(0.5).byte()
-        if not (self.args.save_json or self.args.save_txt):  # sample source pixels 2 mod 4, the target mask centers
+        if self.coco_labels is None and not (self.args.save_json or self.args.save_txt):
+            # Sample source pixels 2 mod 4, the target mask centers.
             x0, y0 = pbatch["tile"][:2]
             masks = masks[:, (2 - y0) % 4 :: 4, (2 - x0) % 4 :: 4].contiguous()  # pending tile masks 16x smaller
         return {**super().scale_preds(predn, pbatch), "masks": masks}
 
-    def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:
-        """Return COCO-style instance segmentation evaluation metrics."""
-        pred_json = self.save_dir / "predictions.json"  # predictions
-        anno_json = (
-            self.data["path"]
-            / "annotations"
-            / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
-        )  # annotations
-        return super().coco_evaluate(stats, pred_json, anno_json, ["bbox", "segm"], suffix=["Box", "Mask"])
+    def _coco_task_overlap(self, anns, predn, idx, crowd):
+        """Decode original COCO annotations and compare their pixels with the masks used by JSON export."""
+        from faster_coco_eval.core.mask import decode, segmToRle
+
+        masks = predn["masks"]
+        h, w = masks.shape[-2:]
+        gt = decode([segmToRle(a["segmentation"], w, h) for a in anns]).transpose(2, 0, 1)
+        inter, g, d = _mask_areas(torch.from_numpy(gt).to(masks.device).flatten(1), masks[idx.tolist()].flatten(1))
+        return self._coco_iou(inter.cpu().numpy().astype(np.float64), g.cpu().numpy(), d.cpu().numpy(), crowd)

@@ -1,5 +1,5 @@
 ---
-title: YOLO FAQ Common Questions & Solutions
+title: Frequently Asked Questions about YOLO
 comments: true
 description: Answers to common Ultralytics YOLO questions, from installation and system requirements to training, pretrained YOLO26 models, deployment, and tuning.
 keywords: Ultralytics, YOLO, FAQ, object detection, hardware requirements, fine-tuning, ONNX, TensorFlow, real-time detection, model accuracy

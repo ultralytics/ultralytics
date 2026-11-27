@@ -1,4 +1,5 @@
 ---
+title: Image Classification Datasets for YOLO
 comments: true
 description: Structure image classification datasets for Ultralytics YOLO, with the train/val folder layout, automatic 80/20 splitting, and supported datasets like ImageNet.
 keywords: YOLO, image classification, dataset structure, CIFAR-10, Ultralytics, machine learning, training data, model evaluation

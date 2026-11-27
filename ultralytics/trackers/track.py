@@ -76,13 +76,14 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
             isinstance(predictor.model.model, torch.nn.Module)
             and isinstance(getattr(predictor.model.model, "model", [None])[-1], Detect)
             and not predictor.model.model.model[-1].end2end
+            and not hasattr(predictor.model.model.model[-1], "lrpc")  # prompt-free head filters anchors
         ):
             cfg.model = "yolo26n-cls.pt"
         else:
             # Register hook to extract input of Detect layer
             def pre_hook(module, input):
-                # unroll to new list to avoid mutation in forward; plain predict() on this predictor extracts none
-                predictor._feats = list(input[0]) if predictor.args.mode == "track" else None
+                # copy the detection levels, forward mutates the list; plain predict() on this predictor extracts none
+                predictor._feats = input[0][: module.nl] if predictor.args.mode == "track" else None
 
             predictor._hook = predictor.model.model.model[-1].register_forward_pre_hook(pre_hook)
 

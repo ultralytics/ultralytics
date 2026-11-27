@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 
 [Ultralytics Platform](https://platform.ultralytics.com) datasets hold the images, labels, and splits that make up your [training data](https://www.ultralytics.com/glossary/training-data). After upload, the platform processes images, labels, and statistics automatically.
 
-A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image. The dataset header shows a `Ready` badge when all three conditions are met, and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing.
+A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image. The dataset header shows a `Ready` badge when all three conditions are met, and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing. The badge counts images per split, so when you open the training dialog Platform also runs the checks **Start Training** does: a dataset other than depth needs class names (and a pose dataset a keypoint shape), the `train` and `val` or `test` splits each need an image that processed without errors, a classification dataset needs labeled images in both, and a depth dataset needs depth-paired images (1 in `train`, 2 in `val`). If a check fails, the dialog shows the reason and keeps **Start Training** disabled, even when the badge reads `Ready`.
 
 ## Collect Images with Agents
 
@@ -22,7 +22,7 @@ Ultralytics Platform accepts images, videos, archives, and NDJSON files.
 
 !!! tip "Already have data elsewhere?"
 
-    If you already have datasets in [Roboflow](../integrations/roboflow.md), use [Integrations](../integrations/index.md) to import them directly — no manual export or re-upload needed. Data in [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) can be used in place through **Cloud storage**. Enterprise workspaces can use [On Premise](../integrations/on-premise.md) to index and train on local data without sending pixels to Platform.
+    If you already have datasets in [Roboflow](../integrations/roboflow.md) or hosted [Label Studio](../integrations/label-studio.md), use [Integrations](../integrations/index.md) to import them directly — no manual export or re-upload needed. Data in [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) can be used in place through **Cloud storage**. Enterprise workspaces can use [On Premise](../integrations/on-premise.md) to index and train on local data without sending pixels to Platform.
 
 ### Supported Formats
 
@@ -265,7 +265,7 @@ To create a dataset:
 5. Select the task type (see [supported tasks](index.md#supported-tasks)), an optional license (see [available licenses](#available-licenses)), and visibility (public or private). A new public dataset starts with **CC BY 4.0** selected; pick another license or **None** to change it
 6. Click `Create & Upload` for local files, `Create & Import` for a URL or connected source, or `Create Dataset` to start empty
 
-![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.ul.run/i/2d90456710a8b99b2fb2b85b54642fb7.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.ul.run/i/829a866ee0425dca19d878a8e0cb9156.avif)<!-- screenshot -->
 
 To add files to an existing dataset, open its dataset page and either drag the files onto the gallery or click the upload icon in the page header. The upload icon opens your browser's native file picker directly because the dataset task is already defined.
 
@@ -288,23 +288,9 @@ Depth datasets can only be created from **Upload** or **URL**; the **Cloud** and
 
 #### Before the Upload Starts
 
-Platform validates your files in the browser before uploading anything, so common problems surface immediately rather than after a long transfer. Archives are checked for corruption, emptiness, password protection, and YAML syntax errors, and oversized files are listed by name.
+Platform validates your files in the browser before uploading anything, so common problems surface immediately rather than after a long transfer. Archives are checked for corruption, emptiness, password protection, and YAML syntax errors, and oversized files are listed by name. A ZIP cut short by an interrupted download or copy has no end-of-archive record, so it stops with **Unable to read ZIP file** before any bytes upload; download or copy it again. URL imports can't be checked in the browser, so an incomplete ZIP at a link fails during processing with **Unable to read this archive**.
 
-Two dialogs may then appear:
-
-=== "Map Classes"
-
-    When a ZIP archive declares class names and your dataset already has classes, the `Map classes` dialog lists one row per incoming class. Map each one to an existing class or create a new class, or clear its **Include** checkbox to skip it. Matching names (ignoring case, except for one- and two-character names) are preselected, and the annotations of skipped classes are not imported.
-
-=== "Handle Conflicts"
-
-    When you upload an archive, multiple files, or anything into a dataset that already has images, Platform asks how to handle filename or content conflicts:
-
-    | Choice        | Behavior                                    |
-    | ------------- | ------------------------------------------- |
-    | **Skip**      | Keep the existing images, drop the incoming |
-    | **Keep Both** | Import the incoming alongside the existing  |
-    | **Replace**   | Overwrite the existing images               |
+When a ZIP archive declares class names and your dataset already has classes, the `Map classes` dialog lists one row per incoming class. Map each one to an existing class or create a new class, or clear its **Include** checkbox to skip it. Matching names (ignoring case, except for one- and two-character names) are preselected, and the annotations of skipped classes are not imported.
 
 After upload, the platform processes your data automatically:
 
@@ -322,6 +308,8 @@ flowchart TD
 3. **Thumbnails**: 256px WebP previews generated
 4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), COCO, [LabelMe](../integrations/labelme.md), and [Ultralytics](../../datasets/detect/index.md#ultralytics-ndjson-format) or [Labelbox](../integrations/labelbox.md) NDJSON labels extracted
 5. **Statistics**: Class distributions and image dimensions computed
+
+File uploads and URL imports skip conflicts without prompting: an image is not added when its content was already in the dataset before the import, under any filename or split, or when an image in the same split has the same content or filename. If any were skipped, the completion message gives the count without listing filenames. To keep both versions of a filename or replace a conflicting image, set `conflictPolicy` through the [ingest API](../api/index.md#ingest-dataset-data).
 
 !!! info "Stored Image Encoding"
 
@@ -355,7 +343,7 @@ Open the [Clustering](#clustering) panel from the gallery toolbar to explore you
 | **Compact** | Smaller thumbnails for quick scanning                                             |
 | **Table**   | List with thumbnail, filename, dimensions, size, split, classes, and label counts |
 
-![Ultralytics Platform Datasets Gallery Grid View With Annotations](https://cdn.ul.run/i/8d1bce8510945878ac52bdfc577a7301.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Gallery Grid View With Annotations](https://cdn.ul.run/i/e1ee0ccc1b65ad62c48fb3f871880a34.avif)<!-- screenshot -->
 
 ### Sorting and Filtering
 
@@ -400,28 +388,30 @@ Images can be sorted and filtered for efficient browsing:
 
     Results are ordered by relevance: images whose filename, class, or metadata match come first, then up to 1,000 more
     images that look like the search, such as `forklift near a doorway`. Sorting is unavailable while a search is
-    active, and a search that ends in a file extension skips the look-alike matches.
+    active. A search that ends in a file extension skips the look-alike matches, and one that ends in an image file
+    extension, such as `img_0042.jpg`, matches filenames only.
 
 ### Fullscreen Viewer
 
 Click any image to open the fullscreen viewer with:
 
 - **Navigation**: Arrow keys or thumbnail previews to browse
-- **Image information**: Review Platform-generated properties, custom metadata, and embedded file metadata such as EXIF
+- **Image information**: Review Platform-generated properties, custom metadata, and embedded file metadata such as EXIF. An image added from another dataset (with [Find Similar](#find-similar-images), [Copy or Move](#copy-and-move-images), or [Clone](#clone-dataset)) or from [Generate Similar](#generate-similar-images) also shows where it came from: **Source method**, **Source dataset** (**Unavailable** when that dataset is deleted or not visible to you), **Source model** for generated images, **Source license** at import, and **Imported by** for members of the dataset's workspace. Platform records only the latest import, and plain uploads and images added before it began recording sources in November 2026 show none
 - **Custom metadata**: Owners and editors can add or replace a JSON object, including nested values up to 500,000 serialized characters and top-level keys up to 128 characters
 - **Annotations**: Toggle annotation overlay visibility
 - **Class Breakdown**: Per-class label counts with color indicators
 - **Annotate**: When you have edit access, annotation controls are active immediately when the fullscreen viewer opens on desktop
 - **Blur faces**: Right-click the image or an annotation to [preview and apply face blurring](#blur-faces) to the image when available
-- **Download**: Download the original image file
-- **Delete**: Delete the image from the dataset
+- **Rotate**: With edit access, press `R` or use the rotate button to turn the image and its annotations 90° clockwise. Platform keeps the image as first stored and renders each turn from it, so repeated turns do not degrade the image and turning back to upright restores the original. Rotation is not available for depth datasets, multispectral datasets, images stored as TIFF, or cloud storage and On Premise datasets
+- **Download**: Download the full-size image file, turned as displayed if you rotated it
+- **Delete**: Permanently delete the image from the dataset after you confirm
 - **Zoom**: `Cmd/Ctrl+Scroll`, `Cmd/Ctrl++`, or `Cmd/Ctrl+=` to zoom in, and `Cmd/Ctrl+-` to zoom out
 - **Reset view**: `Cmd/Ctrl + 0` or the reset button to fit the image to the viewer
 - **Pan**: Hold `Space` and drag, or drag with the middle mouse button, to pan the canvas at any zoom level
 - **Pixel view**: Toggle pixelated rendering for close inspection
 - **Depth curtain**: On depth datasets, a draggable divider wipes between the RGB image and its colorized depth map
 
-![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/fdda4f9080025d94e4fe07f1e45590bf.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Fullscreen Viewer With Metadata Panel](https://cdn.ul.run/i/6968dd5bef1881e578411ff5e16180e6.avif)<!-- screenshot -->
 
 ### Filter by Split
 
@@ -457,7 +447,7 @@ Analysis runs in the background in two stages, `Computing embeddings` and `Clust
 
 Once analysis completes, the panel shows a 2D scatter of all analyzed images with a legend and a point counter. Gallery filters (split, class, labeled/unlabeled) dim out-of-filter points so you can focus on the subset you care about — the counter then reads `visible / total points`.
 
-![Ultralytics Platform Datasets Clustering Scatter Plot](https://cdn.ul.run/i/8126ac6ef5087cfa9fd43114c037db7e.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Clustering Scatter Plot](https://cdn.ul.run/i/753f9d5bb96bd4eb0e5a4a05895aed61.avif)<!-- screenshot -->
 
 #### Color By
 
@@ -632,20 +622,18 @@ Images that failed processing are listed here with:
 
 - **Error banner**: Total count of failed images and guidance
 - **Error table**: Filename, user-friendly error description, fix hints, and preview thumbnail
-- Common errors include corrupted files, unsupported formats, images too small (min 28px), and unsupported color modes
+- Common errors include corrupted files and unsupported formats
 
 ![Ultralytics Platform Datasets Errors Tab Processing Failures](https://cdn.ul.run/i/7d3959d9f884e2d14d53ee75e884a74e.avif)<!-- screenshot -->
 
 ??? info "Common Processing Errors"
 
-    | Error                     | Cause                              | Fix                                 |
-    | ------------------------- | ---------------------------------- | ----------------------------------- |
-    | Unable to read image file | Corrupted or unsupported format    | Re-export from image editor         |
-    | Incomplete or corrupted   | File was truncated during transfer | Re-download the original file       |
-    | Unsupported image format  | Format Platform cannot decode      | Convert to JPG, PNG, or WebP        |
-    | File permission error     | File is locked or read-protected   | Unlock the file and re-upload       |
-    | Image too small           | Minimum dimension below 28px       | Use higher resolution source images |
-    | Unsupported color mode    | CMYK or indexed color mode         | Convert to RGB mode                 |
+    | Error                     | Cause                              | Fix                           |
+    | ------------------------- | ---------------------------------- | ----------------------------- |
+    | Unable to read image file | Corrupted or unsupported format    | Re-export from image editor   |
+    | Incomplete or corrupted   | File was truncated during transfer | Re-download the original file |
+    | Unsupported image format  | Format Platform cannot decode      | Convert to JPG, PNG, or WebP  |
+    | File permission error     | File is locked or read-protected   | Unlock the file and re-upload |
 
 ### Versions Tab
 
@@ -766,8 +754,8 @@ Right-click an image in **Grid** or **Compact** view, or a single selected row i
 | **Blur Faces**              | Blur the faces detected in the image (see [Blur Faces](#blur-faces))                                                 |
 | **Copy** / **Cut**          | Copy or cut the image to paste it into another dataset (see [Copy and Move Images](#copy-and-move-images))           |
 | **Paste**                   | Paste copied or cut images into this dataset; shown when the clipboard holds images from another dataset             |
-| **Download**                | Download the original image file                                                                                     |
-| **Delete**                  | Delete the image from the dataset                                                                                    |
+| **Download**                | Download the full-size image file, turned as displayed if you rotated it                                             |
+| **Delete**                  | Permanently delete the image after you confirm; images don't go to [Trash](../account/trash.md)                      |
 
 ![Ultralytics Platform Datasets Image Card Context Menu](https://cdn.ul.run/i/cfd31e07fad45487f91d1ba876f5fca3.avif)<!-- screenshot -->
 
@@ -889,7 +877,7 @@ Use this URI to train models from anywhere:
 === "CLI"
 
     ```bash
-    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
+    yolo login YOUR_API_KEY # once, on any OS
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
     ```
 
@@ -984,7 +972,7 @@ Workspace viewers can inspect metadata, while members with edit access can repla
 
 ## Clone Dataset
 
-When viewing a public dataset you do not own, click `Clone Dataset` to open the clone dialog. Review the destination workspace, name, visibility, and license, then confirm the clone. The copy includes all images, annotations, and class definitions unless you pick only some of its **Splits** or one of its saved **Versions**, and **Existing dataset** adds the images without labels to a dataset you own instead. To copy only some images, tick them in **Grid** or **Compact** view and click **Clone Images**; its **Annotations** switch decides whether their labels come along. In datasets you can edit, use [Copy and Paste](#copy-and-move-images) instead. Public source datasets stay public by default unless the workspace's [default dataset visibility](../account/settings.md#default-visibility) is Private. If the original dataset has a copyleft license, the clone inherits it and the license selector is locked.
+When viewing a public dataset you do not own, click `Clone Dataset` to open the clone dialog. Review the destination workspace, name, visibility, and license, then confirm the clone. The copy includes all images, annotations, and class definitions unless you pick only some of its **Splits** or one of its saved **Versions**, and **Existing dataset** adds the images without labels to a dataset you own instead. To copy only some images, tick them in **Grid** or **Compact** view and click **Clone Images**; its **Annotations** switch decides whether their labels come along. A clone always goes to a different workspace than its source: to duplicate a dataset in its own workspace, or to copy images between datasets you can edit, create or open the destination dataset and use [Copy and Paste](#copy-and-move-images) instead. Public source datasets stay public by default unless the workspace's [default dataset visibility](../account/settings.md#default-visibility) is Private. If the original dataset has a copyleft license, the clone inherits it and the license selector is locked.
 
 For a new dataset, the clone dialog keeps **Clone Dataset** disabled while the URL is already used in the target workspace. Cloning requires enough remaining storage quota to hold the copy.
 
@@ -1015,7 +1003,7 @@ To delete several datasets at once, select their rows in the table view of the *
 
 ## Train on Dataset
 
-Start training directly from your dataset:
+Start from a dataset you can edit. If you are viewing another workspace's public dataset, [clone it](#clone-dataset) and open the copy first.
 
 1. Click `New Model` on the dataset page
 2. Select a project or create new
@@ -1067,7 +1055,7 @@ Platform exports datasets as NDJSON, not as YOLO folders. [Export Dataset](#expo
 
 ### How does Platform split my images into train, val and test?
 
-Your upload sets the split. With the **All** split filter selected, images inside `train/`, `val/` or `test/` folders keep that split. Selecting **Train**, **Val** or **Test** before uploading sends every new image to that split instead. If an upload with no split selected leaves `val` empty, Platform moves about 20% of the train images (at least one) to `val`. Classification datasets use their folder structure instead, and depth datasets follow separate rules for paired depth maps. Check the dataset's `Ready` badge before training.
+Your upload sets the split. With the **All** split filter selected, images inside `train/`, `val/` or `test/` folders keep that split. Selecting **Train**, **Val** or **Test** before uploading sends every new image to that split instead. If an upload with no split selected leaves `val` empty, Platform moves about 20% of the train images (at least one) to `val`. Classification datasets use their folder structure instead, except classification projects [imported from Label Studio](../integrations/label-studio.md), which move about 20% of their labeled images to `val`, and depth datasets follow separate rules for paired depth maps. Check the dataset's `Ready` badge before training.
 
 To change the split afterwards:
 

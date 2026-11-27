@@ -5,10 +5,9 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, cpu_threads
 from ultralytics.utils.checks import check_requirements
 
 from .base import BaseBackend
@@ -33,7 +32,7 @@ class MNNBackend(BaseBackend):
 
         MNN = import_execstack("MNN", "_mnncengine*.so", "_tools*.so")
 
-        config = {"precision": "low", "backend": "CPU", "numThread": (os.cpu_count() + 1) // 2}
+        config = {"precision": "low", "backend": "CPU", "numThread": cpu_threads((os.cpu_count() + 1) // 2)}
         rt = MNN.nn.create_runtime_manager((config,))
         self.net = MNN.nn.load_module_from_file(str(weight), [], [], runtime_manager=rt, rearrange=True)
         self.expr = MNN.expr
@@ -48,11 +47,9 @@ class MNNBackend(BaseBackend):
         Returns:
             (list): Model predictions as a list of numpy arrays.
         """
-        input_var = self.expr.const(im.data_ptr(), im.shape)
+        input_var = self.expr.const((im := im.cpu().contiguous()).data_ptr(), im.shape)  # MNN reads dense host memory
         output_var = self.net.onForward([input_var])
         # NOTE: need this copy(), or it'd get incorrect results on ARM devices
         if output_var:
             return [x.read().copy() for x in output_var]
-        if self.metadata.get("args", {}).get("nms") and self.task in {"detect", "pose"}:
-            return [np.empty((im.shape[0], 0, 6))]
         raise RuntimeError("Alibaba MNN inference returned no output tensors.")

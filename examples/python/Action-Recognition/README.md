@@ -1,5 +1,7 @@
 # Zero-Shot Action Recognition with Ultralytics YOLO26 (Inference on Video)
 
+<img alt="Python" src="https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white"> <a href="https://docs.ultralytics.com" target="_blank"><img alt="Ultralytics Docs" src="https://img.shields.io/badge/Ultralytics-Docs-042AFF.svg?logo=ultralytics&logoColor=white"></a> <img alt="Hugging Face" src="https://img.shields.io/badge/Hugging%20Face-FFD21E.svg?logo=huggingface&logoColor=black">
+
 Action recognition is a [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) technique used to identify and classify actions performed by individuals in a video. This process enables more advanced analyses when multiple actions are considered. Using models like [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26), actions can be detected and classified in real time. This system leverages **zero-shot learning**, allowing it to recognize actions it wasn't explicitly trained on by using descriptive labels. Learn more about zero-shot concepts on [Wikipedia](https://en.wikipedia.org/wiki/Zero-shot_learning).
 
 The system can be customized to recognize specific actions based on the user's preferences and requirements by providing different text labels.
@@ -20,7 +22,7 @@ Clone the [Ultralytics GitHub repository](https://github.com/ultralytics/ultraly
 git clone https://github.com/ultralytics/ultralytics
 
 # cd to local directory
-cd ultralytics/examples/YOLOv8-Action-Recognition
+cd ultralytics/examples/python/Action-Recognition
 
 # Install dependencies using Python's package manager
 pip install -U -r requirements.txt
@@ -36,38 +38,38 @@ The action recognition model will automatically perform [object detection](https
 
 ```bash
 # Quick start with default video and labels
-python action_recognition.py
+python main.py
 
 # Basic usage with a YouTube video and custom labels
-python action_recognition.py --source "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --labels "dancing" "singing a song"
+python main.py --source "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --labels "dancing" "singing a song"
 
 # Use a local video file
-python action_recognition.py --source path/to/video.mp4
+python main.py --source path/to/video.mp4
 
 # Use a medium-sized YOLO26 model for potentially better detector performance
-python action_recognition.py --weights yolo26m.pt
+python main.py --weights yolo26m.pt
 
 # Run inference on the CPU instead of GPU
-python action_recognition.py --device cpu
+python main.py --device cpu
 
 # Use a different video classifier model from TorchVision
-python action_recognition.py --video-classifier-model "s3d"
+python main.py --video-classifier-model "s3d"
 
 # Use FP16 (half-precision) for faster inference (only for HuggingFace models)
-python action_recognition.py --fp16
+python main.py --fp16
 
 # Export the output video with recognized actions to an mp4 file
-python action_recognition.py --output-path output.mp4
+python main.py --output-path output.mp4
 
 # Combine multiple options: specific YouTube source, GPU device 0, specific HuggingFace model, custom labels, and FP16
-python action_recognition.py --source "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --device 0 --video-classifier-model "microsoft/xclip-base-patch32" --labels "dancing" "singing a song" --fp16
+python main.py --source "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --device 0 --video-classifier-model "microsoft/xclip-base-patch32" --labels "dancing" "singing a song" --fp16
 ```
 
 ## 🛠️ Usage Options
 
 - `--weights`: Path to the YOLO [model weights](https://www.ultralytics.com/glossary/model-weights) file (default: `"yolo26n.pt"`). You can choose other models like `yolo26s.pt`, `yolo26m.pt`, etc.
-- `--device`: CUDA device identifier (e.g., `0` or `0,1,2,3`) or `cpu` to run on the [CPU](https://www.ultralytics.com/glossary/cpu) (default: auto-detects available [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit)).
-- `--source`: Path to a local video file or a YouTube URL (default: "[rickroll](https://www.youtube.com/watch?v=dQw4w9WgXcQ)").
+- `--device`: CUDA device identifier (e.g., `0` or `0,1,2,3`), `cpu` to run on the [CPU](https://www.ultralytics.com/glossary/cpu), or `mps` for Apple silicon GPUs (default: auto-detects available [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit)).
+- `--source`: Path to a local MP4 video file or a YouTube URL (default: "[rickroll](https://www.youtube.com/watch?v=dQw4w9WgXcQ)").
 - `--output-path`: Path to save the output video file (default: `output_video.mp4`).
 - `--crop-margin-percentage`: Percentage of margin to add around detected objects before cropping for classification (default: `10`).
 - `--num-video-sequence-samples`: Number of video frames sampled from a sequence to feed into the classifier (default: `8`).
@@ -85,10 +87,10 @@ Action recognition is a computational method used to identify and classify actio
 
 ### 2. Are Custom Action Labels Supported by Action Recognition?
 
-Yes, custom action labels are supported. The `action_recognition.py` script allows users to specify their own custom labels for **zero-shot video classification**. This is done using the `--labels` argument. For example:
+Yes, custom action labels are supported. The `main.py` script allows users to specify their own custom labels for **zero-shot video classification**. This is done using the `--labels` argument. For example:
 
 ```bash
-python action_recognition.py --source https://www.youtube.com/watch?v=dQw4w9WgXcQ --labels "walking" "running" "jumping"
+python main.py --source https://www.youtube.com/watch?v=dQw4w9WgXcQ --labels "walking" "running" "jumping"
 ```
 
 You can adjust these labels to match the specific actions you want the system to recognize in your video. The system will then attempt to classify detected actions based on these custom labels using its understanding derived from large datasets.
@@ -97,7 +99,7 @@ Additionally, you can choose between different video classification models:
 
 1.  **Hugging Face Models**: You can use any compatible video classification model available on Hugging Face Hub. The default is:
     - `"microsoft/xclip-base-patch32"`
-2.  **TorchVision Models**: These models do not support zero-shot classification with custom text labels but offer pre-trained classification capabilities. Options include:
+2.  **TorchVision Models**: These models do not support zero-shot classification with custom text labels; they ignore `--labels` and `--fp16` and predict Kinetics-400 action labels. Options include:
     - `"s3d"`
     - `"r3d_18"`
     - `"swin3d_t"`
@@ -111,8 +113,8 @@ Additionally, you can choose between different video classification models:
 
 ### 4. Can I Employ Other YOLO Versions?
 
-Certainly! While this example defaults to `yolo26n.pt`, you have the flexibility to specify different Ultralytics YOLO model weights using the `--weights` option. For instance, you could use `yolo26s.pt`, `yolo26m.pt`, `yolo26l.pt`, or `yolo26x.pt` for potentially higher detection accuracy at the cost of inference speed. You can even use models trained for other tasks if applicable, though detection models are standard here. Check the [Ultralytics documentation](https://docs.ultralytics.com) for available models and their performance metrics.
+Certainly! While this example defaults to `yolo26n.pt`, you have the flexibility to specify different Ultralytics YOLO model weights using the `--weights` option. For instance, you could use `yolo26s.pt`, `yolo26m.pt`, `yolo26l.pt`, or `yolo26x.pt` for potentially higher detection accuracy at the cost of inference speed. The script tracks only class `0` (`person`), so use a detection model whose class `0` is person, such as the COCO-pretrained models. Check the [Ultralytics documentation](https://docs.ultralytics.com) for available models and their performance metrics.
 
----
+## 🤝 Contributing
 
-We hope this guide helps you implement zero-shot action recognition using Ultralytics YOLO26! Feel free to explore the code and experiment with different options. If you encounter issues or have suggestions, please consider contributing by opening an issue or pull request on the [GitHub repository](https://github.com/ultralytics/ultralytics). See our [Contributing Guide](https://docs.ultralytics.com/help/contributing) for more details.
+Contributions are welcome! If you find an issue or have a suggestion, please open an issue or pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).

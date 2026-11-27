@@ -66,12 +66,14 @@ DATASET_KEY_TYPES = {  # dataset YAML keys and their permitted types
 DEPTH_PNG_SCALE = 1000  # uint16 millimeters by default; zero is invalid
 
 
-def tile_windows(shape: tuple[int, int], size: int | tuple[int, int]) -> list[tuple[int, int, int, int]]:
-    """Return native-pixel windows covering an image, with 20% overlap and edges aligned to its boundary."""
+def tile_windows(
+    shape: tuple[int, int], size: int | tuple[int, int], overlap: float = 0.2
+) -> list[tuple[int, int, int, int]]:
+    """Return native-pixel windows covering an image, overlapping by a fraction and edges aligned to its boundary."""
     h, w = shape
     th, tw = (size, size) if isinstance(size, int) else size
-    ys = range(0, max(h - th, 0), max(1, round(th * 0.8)))
-    xs = range(0, max(w - tw, 0), max(1, round(tw * 0.8)))
+    ys = range(0, max(h - th, 0), max(1, round(th * (1 - overlap))))
+    xs = range(0, max(w - tw, 0), max(1, round(tw * (1 - overlap))))
     return [(x, y, min(x + tw, w), min(y + th, h)) for y in (*ys, max(h - th, 0)) for x in (*xs, max(w - tw, 0))]
 
 
@@ -977,7 +979,7 @@ def compress_one_image(f: str | Path, f_new: str | Path | None = None, max_dim: 
             im = im.convert("RGB")
         r = max_dim / max(im.height, im.width)  # ratio
         if r < 1.0:  # image too large
-            im = im.resize((int(im.width * r), int(im.height * r)))
+            im = im.resize((max(1, int(im.width * r)), max(1, int(im.height * r))))
         _replace_image(f_new or f, lambda tmp: im.save(tmp, "JPEG", quality=quality, optimize=True))
     except Exception as e:  # use OpenCV
         LOGGER.warning(f"Image compression PIL failure {f}: {e}")
@@ -985,7 +987,7 @@ def compress_one_image(f: str | Path, f_new: str | Path | None = None, max_dim: 
         im_height, im_width = im.shape[:2]
         r = max_dim / max(im_height, im_width)  # ratio
         if r < 1.0:  # image too large
-            im = cv2.resize(im, (int(im_width * r), int(im_height * r)), interpolation=cv2.INTER_AREA)
+            im = cv2.resize(im, (max(1, int(im_width * r)), max(1, int(im_height * r))), interpolation=cv2.INTER_AREA)
         _replace_image(f_new or f, lambda tmp: cv2.imwrite(tmp, im))
 
 

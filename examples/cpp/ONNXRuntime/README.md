@@ -2,12 +2,12 @@
 
 <img alt="C++" src="https://img.shields.io/badge/C%2B%2B-17-00599C.svg?logo=cplusplus&logoColor=white"> <img alt="ONNX Runtime" src="https://img.shields.io/badge/ONNX%20Runtime-717272.svg?logo=onnx&logoColor=white"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white">
 
-A single C++ application that runs **every [Ultralytics YOLO](https://docs.ultralytics.com) task and model generation** with [ONNX Runtime](https://onnxruntime.ai/) and [OpenCV](https://opencv.org/). Point it at any exported `.onnx` model — the program reads the task, class names, and input size from the model metadata and picks the right post-processing automatically.
+A single C++ application that runs **every [Ultralytics YOLO](https://docs.ultralytics.com) model generation** with [ONNX Runtime](https://onnxruntime.ai/) and [OpenCV](https://opencv.org/). Point it at any exported `.onnx` model — the program reads the task, class names, and input size from the model metadata and picks the right post-processing automatically.
 
 ## ✨ Features
 
-- **All tasks:** [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and Ultralytics YOLO26 semantic segmentation.
-- **All generations:** [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8), [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11), and [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26). The grid output of YOLOv8/11 and the end-to-end (NMS-free) output of YOLO26 are detected automatically from the tensor shape — no flags needed.
+- **Tasks:** [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), Ultralytics YOLO26 [semantic segmentation](https://docs.ultralytics.com/tasks/semantic), [classify](https://docs.ultralytics.com/tasks/classify), [pose](https://docs.ultralytics.com/tasks/pose), and [OBB](https://docs.ultralytics.com/tasks/obb) (not [depth](https://docs.ultralytics.com/tasks/depth)).
+- **All generations:** [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8), [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11), and [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26). Grid outputs (YOLOv8/11, or a default YOLO26 export) and NMS-free YOLO26 outputs (`nms=False`) are detected automatically from the tensor shape — no flags needed.
 - **Zero configuration:** task, class names, and `imgsz` come from the model metadata that Ultralytics bakes into every export. No `coco.yaml` or hard-coded class lists.
 - **FP32 and FP16:** half-precision ([FP16](https://www.ultralytics.com/glossary/half-precision)) models are detected automatically from the input type and run with no extra flags.
 - **Simple CLI:** choose the model, source image, and thresholds at runtime — no recompiling.
@@ -17,9 +17,9 @@ A single C++ application that runs **every [Ultralytics YOLO](https://docs.ultra
 | Dependency                                           | Version  | Notes                                                         |
 | :--------------------------------------------------- | :------- | :------------------------------------------------------------ |
 | [ONNX Runtime](https://onnxruntime.ai/docs/install/) | >=1.14   | Download the pre-built binaries (CPU or GPU).                 |
-| [OpenCV](https://opencv.org/releases/)               | >=4.0    | Image I/O, drawing, and NMS.                                  |
+| [OpenCV](https://opencv.org/releases/)               | >=4.7    | Image I/O, drawing, and batched NMS.                          |
 | C++ Compiler                                         | C++17    | For `<filesystem>`.                                           |
-| [CMake](https://cmake.org/download/)                 | >=3.5    | Build system.                                                 |
+| [CMake](https://cmake.org/download/)                 | >=3.5    | Build system (3.25+ on Linux, or pass `-DLINUX=TRUE`).        |
 | [CUDA](https://developer.nvidia.com/cuda/toolkit)    | optional | Only for the ONNX Runtime CUDA execution provider (`--cuda`). |
 
 ## 📦 Exporting a Model
@@ -84,15 +84,15 @@ export LD_LIBRARY_PATH=/path/to/onnxruntime/lib:$LD_LIBRARY_PATH
 ./yolo_onnxruntime --model yolo26n-sem.onnx --source street.jpg
 ```
 
-| Argument   | Default        | Description                                                                                        |
-| :--------- | :------------- | :------------------------------------------------------------------------------------------------- |
-| `--model`  | `yolo26n.onnx` | Path to the exported `.onnx` model (any task/generation).                                          |
-| `--source` | `bus.jpg`      | Input image.                                                                                       |
-| `--conf`   | `0.25`         | Confidence threshold.                                                                              |
-| `--iou`    | `0.5`          | NMS IoU threshold (grid models only; end2end models skip NMS).                                     |
-| `--out`    | `result.jpg`   | Output image path.                                                                                 |
-| `--cuda`   | _off_          | Use the CUDA execution provider (requires a GPU ONNX Runtime build compiled with `-DUSE_CUDA=ON`). |
-| `--show`   | _off_          | Also open a display window.                                                                        |
+| Argument   | Default        | Description                                                                                                           |
+| :--------- | :------------- | :-------------------------------------------------------------------------------------------------------------------- |
+| `--model`  | `yolo26n.onnx` | Path to the exported `.onnx` model (any task/generation).                                                             |
+| `--source` | `bus.jpg`      | Input image.                                                                                                          |
+| `--conf`   | `0.25`         | Confidence threshold.                                                                                                 |
+| `--iou`    | `0.5`          | NMS IoU threshold (grid models only; end2end models skip NMS).                                                        |
+| `--out`    | `result.jpg`   | Output image path.                                                                                                    |
+| `--cuda`   | _off_          | Use the CUDA execution provider (requires a GPU ONNX Runtime and this example built with `USE_CUDA=ON`, the default). |
+| `--show`   | _off_          | Also open a display window.                                                                                           |
 
 The annotated result is always written to `--out` and the detections are printed to the console. The task is shown at startup, e.g. `Model: yolo26n.onnx | task: detect | classes: 80`.
 
@@ -102,4 +102,4 @@ The task type, class `names`, and input `imgsz` are read directly from the model
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you find any issues or have suggestions for improvements, please feel free to open an issue or submit a pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).
+Contributions are welcome! If you find an issue or have a suggestion, please open an issue or pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).

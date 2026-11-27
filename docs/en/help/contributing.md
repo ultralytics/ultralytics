@@ -1,5 +1,5 @@
 ---
-title: Open-Source Contribution Guide
+title: How to Contribute to Ultralytics Projects
 comments: true
 description: Contribute to Ultralytics YOLO open-source repositories with guidance on pull requests, CLA signing, docstrings, CI tests, bug reports, and AGPL-3.0.
 keywords: Ultralytics, YOLO, open-source, contribution, pull request, code of conduct, bug reporting, GitHub, CLA, Google-style docstrings, AGPL-3.0

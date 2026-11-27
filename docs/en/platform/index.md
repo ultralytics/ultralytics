@@ -9,7 +9,7 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 
 [Ultralytics Platform](https://platform.ultralytics.com) is an end-to-end [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) platform that covers the full machine learning workflow, from data preparation to model deployment. It is built for teams and individuals who want to train and deploy production vision models without managing their own infrastructure.
 
-![Ultralytics Platform Dataset Screenshot](https://cdn.ul.run/i/2141b069efb0284ebee4bc23847f999c.avif)<!-- screenshot -->
+![Ultralytics Platform Dataset Screenshot](https://cdn.ul.run/i/e1ee0ccc1b65ad62c48fb3f871880a34.avif)<!-- screenshot -->
 
 ## What is Ultralytics Platform?
 
@@ -41,7 +41,7 @@ flowchart TD
 | **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) from your machine, a URL, cloud storage, or an on-premise host                                                                                                                                                                                                                                                                           |
 | **Annotate** | Manual annotation tools for 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM models for detect, segment, semantic, and OBB, YOLO models for those tasks and pose, or [class-prompted models](https://platform.ultralytics.com/models) (hosted open-source or paid provider models) for detection datasets with 1–200 classes (see [supported task types](data/annotation.md#supported-task-types)) |
 | **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                                                                                                                                                                                                                                             |
-| **Export**   | [23 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.; see [supported formats](train/models.md#supported-formats))                                                                                                                                                                                                                                                                         |
+| **Export**   | [24 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.; see [supported formats](train/models.md#supported-formats))                                                                                                                                                                                                                                                                         |
 | **Deploy**   | 42 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                                                                                                                                                                                                                                         |
 
 **What you can do:**
@@ -49,7 +49,7 @@ flowchart TD
 - **Upload** images, videos, and dataset files to create training datasets
 - **Visualize** annotations with interactive overlays for the 6 YOLO task types supported by the annotation editor (see [supported task types](data/annotation.md#supported-task-types))
 - **Train** models on cloud GPUs (24 on all plans, 26 with Pro or Enterprise for B200 and B300) with real-time metrics
-- **Export** to [23 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.)
+- **Export** to [24 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.)
 - **Deploy** to 42 global regions with one-click dedicated endpoints
 - **Build [Agents workflows](agents.md)** that connect models, conditions, dataset collection, Slack alerts, and webhooks
 - **Monitor** training progress, deployment health, and usage metrics
@@ -101,9 +101,9 @@ flowchart TD
 - **Remote Training**: Train anywhere and stream metrics to Ultralytics Platform
 - **Advanced Settings**: Override any Ultralytics training argument from a built-in YAML editor in the training dialog
 - **Project Organization**: Group related models, compare experiments, track activity
-- **23 Export Formats**: ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, and more (see [supported formats](train/models.md#supported-formats))
+- **24 Export Formats**: ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, and more (see [supported formats](train/models.md#supported-formats))
 
-![Ultralytics Platform Project Screenshot](https://cdn.ul.run/i/78d6e38a07e3885956acdce96a7fc061.avif)<!-- screenshot -->
+![Ultralytics Platform Project Screenshot](https://cdn.ul.run/i/2b7c23210ca96498de93671f3b8e71e8.avif)<!-- screenshot -->
 
 You can train models either through the web UI (cloud training) or from your own machine (remote training):
 
@@ -120,8 +120,8 @@ You can train models either through the web UI (cloud training) or from your own
     # Install ultralytics
     pip install "ultralytics>=8.4.120"
 
-    # Set your API key
-    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
+    # Save your API key once (works on Linux, macOS, and Windows)
+    yolo login YOUR_API_KEY
 
     # Train and stream metrics to the platform
     yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
@@ -158,7 +158,7 @@ flowchart TD
     B -->|yes| C[Test in the browser]
     B -->|no| D{Export or deploy?}
     C --> D
-    D -->|export| E[23 formats]
+    D -->|export| E[24 formats]
     D -->|deploy| F[42 regions]
     F --> G[Endpoint URL]
     G --> H([Monitor and scale])
@@ -376,8 +376,8 @@ You can train models on your own hardware and stream real-time metrics to Ultral
 === "CLI"
 
     ```bash
-    # Set your API key
-    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
+    # Save your API key once (works on Linux, macOS, and Windows)
+    yolo login YOUR_API_KEY
 
     # Train with project/name to stream metrics
     yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
@@ -404,9 +404,7 @@ You can train models on your own hardware and stream real-time metrics to Ultral
 === "Platform Dataset (ul:// URI)"
 
     ```bash
-    # Train using a Platform dataset directly
-    export ULTRALYTICS_API_KEY="YOUR_API_KEY"
-
+    # Train using a Platform dataset directly (after yolo login YOUR_API_KEY)
     yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100 project=username/my-project name=exp1
     ```
 
@@ -440,7 +438,7 @@ See [Annotation](data/annotation.md) for the complete guide.
 
 ### What export formats are supported?
 
-The Platform supports the same 23 deployment formats as Ultralytics Export mode. PyTorch is the source format; each row with a `format` argument is an export target.
+The Platform supports all 24 deployment formats in Ultralytics Export mode. PyTorch is the source format; each row with a `format` argument is an export target.
 
 {% include "macros/export-table.md" %}
 

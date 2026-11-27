@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.nn.modules import Detect, Pose, Pose26
+from ultralytics.nn.modules import Detect, Pose, Pose26, Segment, YOLOESegment
 from ultralytics.utils import ARM64, AUTOINSTALL, LINUX, LOGGER, MACOS, USER_CONFIG_DIR
 from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_13, ONNXRUNTIME_BUILDS, check_requirements, check_version
 from ultralytics.utils.downloads import attempt_download_asset, safe_download
@@ -17,10 +17,13 @@ from ultralytics.utils.tal import make_anchors
 
 
 def tf_wrapper(model: torch.nn.Module) -> torch.nn.Module:
-    """Patch Detect and Pose head decoding with TensorFlow-export-compatible normalized implementations.
+    """Normalize box and keypoint coordinates and scale segmentation outputs for Edge TPU and ST Edge AI exports.
+
+    Segment heads divide their mask coefficients by 16 and multiply their prototypes by 16, so the coefficients fit the
+    per-tensor INT8 range they share with boxes and scores. The reciprocal factors preserve the float mask logits.
 
     Args:
-        model (torch.nn.Module): Model whose Detect (and Pose) heads are patched in place.
+        model (torch.nn.Module): Model whose Detect, Pose and Segment heads are patched in place.
 
     Returns:
         (torch.nn.Module): The same model with patched head methods.
@@ -33,6 +36,9 @@ def tf_wrapper(model: torch.nn.Module) -> torch.nn.Module:
         m._get_decode_boxes = types.MethodType(_tf_decode_boxes, m)
         if isinstance(m, Pose):
             m.kpts_decode = types.MethodType(partial(_tf_kpts_decode, is_pose26=type(m) is Pose26), m)
+        if isinstance(m, (Segment, YOLOESegment)):
+            m._inference = lambda x, f=m._inference: f({**x, "mask_coefficient": x["mask_coefficient"] / 16})
+            m.proto.forward = lambda *a, f=m.proto.forward, **k: f(*a, **k) * 16
     return model
 
 
@@ -94,6 +100,8 @@ def onnx2saved_model(
         - Downloads the onnx2tf calibration sample data file if not already present.
         - Removes temporary files and renames quantized models after conversion.
     """
+    import torchvision  # noqa (import before TensorFlow, whose LLVM options clash with triton's)
+
     try:
         import tensorflow as tf
     except ImportError:
@@ -191,6 +199,7 @@ def onnx2saved_model(
         custom_input_op_name_np_data_path=np_data,
         enable_batchmatmul_unfold=not use_int8,  # fix lower no. of detected objects on GPU delegate
         output_signaturedefs=True,  # fix error with Attention block group convolution
+        output_nms_with_dynamic_tensor=True,  # fix repeated top box when NMS keeps fewer than max_det boxes
         disable_group_convolution=disable_group_convolution,  # fix error with group convolution
     )
 
@@ -293,7 +302,7 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         "--show_operations",
         "--search_delegate",
         "--delegate_search_step",
-        "30",
+        "20",
         "--timeout_sec",
         "180",
         str(tflite_file),

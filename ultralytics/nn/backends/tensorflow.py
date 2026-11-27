@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import platform
 from pathlib import Path
 
@@ -39,8 +40,13 @@ class TensorFlowBackend(BaseBackend):
         Args:
             weight (str | Path): Path to the model file or directory.
         """
+        import torchvision  # noqa (import before TensorFlow, whose LLVM options clash with triton's)
+
         if self.format in {"saved_model", "pb"}:
             import tensorflow as tf
+
+            with contextlib.suppress(Exception):  # fails only if TF GPUs are already initialized by earlier user code
+                tf.config.set_visible_devices([], "GPU")  # AutoBackend runs these formats on CPU
 
         if self.format == "saved_model":
             LOGGER.info(f"Loading {weight} for TensorFlow SavedModel inference...")
@@ -134,20 +140,7 @@ class TensorFlowBackend(BaseBackend):
                     scale, zero_point = output["quantization"]
                     x = (x.astype(np.float32) - zero_point) * scale
                 if x.ndim == 3:
-                    # Denormalize xywh by image size
-                    if x.shape[-1] == 6 or self.end2end:
-                        x[:, :, [0, 2]] *= w
-                        x[:, :, [1, 3]] *= h
-                        if self.task == "pose":
-                            x[:, :, 6::3] *= w
-                            x[:, :, 7::3] *= h
-                    else:
-                        x[:, [0, 2]] *= w
-                        x[:, [1, 3]] *= h
-                        if self.task == "pose":  # keypoints follow the box (4) and class-score (nc) channels
-                            kpt_start = 4 + len(self.names)
-                            x[:, kpt_start::3] *= w
-                            x[:, kpt_start + 1 :: 3] *= h
+                    self.denormalize(x, w, h, end2end=x.shape[-1] == 6 or self.end2end)
                 y.append(x)
 
         if self.task == "segment":  # segment with (det, proto) output order reversed

@@ -1,4 +1,6 @@
-# Ultralytics YOLO Interactive Object Tracking UI 🚀
+# Ultralytics YOLO Interactive Object Tracking UI
+
+<img alt="Python" src="https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white"> <a href="https://docs.ultralytics.com" target="_blank"><img alt="Ultralytics Docs" src="https://img.shields.io/badge/Ultralytics-Docs-042AFF.svg?logo=ultralytics&logoColor=white"></a> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white">
 
 A real-time [object detection](https://docs.ultralytics.com/tasks/detect) and [tracking](https://docs.ultralytics.com/modes/track) UI built with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) and [OpenCV](https://opencv.org/), designed for interactive demos and seamless integration of tracking overlays. Whether you're just getting started with object tracking or looking to enhance it with additional features, this project provides a solid foundation.
 
@@ -10,7 +12,7 @@ https://github.com/user-attachments/assets/723e919e-555b-4cca-8e60-18e711d4f3b2
 - Click-to-track any detected object
 - Scope lines and bold [bounding boxes](https://docs.ultralytics.com/usage/simple-utilities#bounding-boxes) for active tracking
 - Dashed boxes for passive (non-tracked) objects
-- [Live terminal output](https://docs.ultralytics.com/guides/view-results-in-terminal): object ID, label, [confidence](https://www.ultralytics.com/glossary/confidence), and center coordinates
+- [Live terminal output](https://docs.ultralytics.com/guides/view-results-in-terminal): label, object ID, and center coordinates
 - Adjustable object tracking algorithms ([ByteTrack](https://docs.ultralytics.com/reference/trackers/byte_tracker), [BoT-SORT](https://docs.ultralytics.com/reference/trackers/bot_sort), [OC-SORT](https://docs.ultralytics.com/reference/trackers/oc_sort), [Deep OC-SORT](https://docs.ultralytics.com/reference/trackers/deep_oc_sort), [FastTracker](https://docs.ultralytics.com/reference/trackers/fast_tracker), [TrackTrack](https://docs.ultralytics.com/reference/trackers/track_tracker))
 - Supports:
   - [PyTorch](https://pytorch.org/) `.pt` models (for GPU devices like [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson) or [CUDA](https://developer.nvidia.com/cuda)-enabled desktops)
@@ -19,8 +21,8 @@ https://github.com/user-attachments/assets/723e919e-555b-4cca-8e60-18e711d4f3b2
 ## 🏗️ Project Structure
 
 ```text
-YOLO-Interactive-Tracking-UI/
-├── interactive_tracker.py   # Main Python tracking UI script
+Interactive-Tracking/
+├── main.py   # Main Python tracking UI script
 └── README.md                # You're here!
 ```
 
@@ -63,7 +65,7 @@ pip install ultralytics
 
 ### Step 2: Configure the Script
 
-Edit the global parameters at the top of `interactive_tracker.py`:
+Edit the global parameters at the top of `main.py`:
 
 ```python
 # --- Configuration ---
@@ -97,10 +99,10 @@ window_name = "Ultralytics YOLO Interactive Tracking"  # Name for the OpenCV dis
 
 ### Step 3: Run the Object Tracking
 
-Execute the script from your terminal:
+The script reads from the default webcam (`cv2.VideoCapture(0)` in `main.py`); replace `0` with a video file path to use a recording instead. Execute the script from your terminal:
 
 ```bash
-python interactive_tracker.py
+python main.py
 ```
 
 ### Controls
@@ -134,4 +136,4 @@ This software is provided "as is" for educational and demonstration purposes. Us
 
 ## 🤝 Contributing
 
-Contributions, feedback, and bug reports are welcome! Feel free to open an issue or submit a pull request on the original repository if you have improvements or suggestions.
+Contributions are welcome! If you find an issue or have a suggestion, please open an issue or pull request on the main [Ultralytics repository](https://github.com/ultralytics/ultralytics).

@@ -1,5 +1,5 @@
 ---
-title: YOLO12 Attention-Centric Object Detection
+title: YOLO12 Attention-Centric Detector
 comments: true
 description: YOLO12 is an attention-centric YOLO object detector with Area Attention and R-ELAN. Compare its COCO accuracy and speed, and train or run it with Ultralytics.
 keywords: YOLO12, attention-centric object detection, YOLO series, Ultralytics, computer vision, Area Attention, R-ELAN, FlashAttention

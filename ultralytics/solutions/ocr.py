@@ -15,8 +15,9 @@ import cv2
 import numpy as np
 import torch
 
+from ultralytics.data.loaders import LoadPilAndNumpy
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
-from ultralytics.utils import LINUX, ops
+from ultralytics.utils import checks, ops
 from ultralytics.utils.checks import check_python, check_requirements, check_tensorrt, rocm_is_available
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.plotting import save_one_box
@@ -44,31 +45,25 @@ class TextRecognizer:
         self.session = None
         if engine and cuda:  # one TensorRT context, whose output buffer every batch reuses, so one batch at a time
             self.backend, self.lock = self.load_engine(model, device), threading.Lock()
-            alphabet = self.backend.metadata["character"]
         else:
             # Interchangeable ONNX Runtime builds, as the ONNX backend checks them, so a GPU build is never replaced.
             # 1.26 hands outputs to torch via DLPack and needs Python 3.11+
             check_python("3.11")
             builds = (
-                ("onnxruntime-gpu[cuda]", "onnxruntime-gpu", "onnxruntime-windowsml")  # Jetson lacks [cuda]
+                (checks.ONNXRUNTIME_CUDA, "onnxruntime-gpu", "onnxruntime-windowsml")  # Jetson lacks [cuda]
                 if cuda
                 else ("onnxruntime", "onnxruntime-gpu", "onnxruntime-vitisai", "onnxruntime-windowsml")
             )
-            check_requirements([tuple(f"{b}>=1.26.0" for b in builds)])
-            import onnxruntime as ort
+            check_requirements([tuple(f"{b}{',' * ('<' in b)}>=1.26.0" for b in builds)])
+            from ultralytics.nn.backends.onnx import ONNXBackend
 
-            providers = ["CPUExecutionProvider"]
-            if cuda and "CUDAExecutionProvider" in ort.get_available_providers():
-                if LINUX and hasattr(ort, "preload_dlls"):
-                    ort.preload_dlls()  # load pip-installed CUDA libraries that torch does not load itself
-                # Heuristic cuDNN algorithms: the default exhaustive search re-benchmarks every new width and batch
-                options = {"device_id": device.index or 0, "cudnn_conv_algo_search": "HEURISTIC"}
-                providers.insert(0, ("CUDAExecutionProvider", options))
-            self.session, self.lock = ort.InferenceSession(model, providers=providers), nullcontext()  # concurrent
-            # Character probabilities stay on the recognizer's device, which returns only each step's best character
-            output = self.session.get_outputs()[0].name
-            self.output = output, "cuda" if len(providers) > 1 else "cpu", device.index or 0
-            alphabet = self.session.get_modelmeta().custom_metadata_map["character"]
+            # Heuristic cuDNN algorithms: the default exhaustive search re-benchmarks every new width and batch
+            options = {"cudnn_conv_algo_search": "HEURISTIC"}
+            self.backend = ONNXBackend(model, device if cuda else torch.device("cpu"), cuda_options=options)
+            # Concurrent reads with per-call IO bindings; character probabilities stay on the recognizer's device
+            self.session, self.lock = self.backend.session, nullcontext()
+            self.output = self.backend.output_names[0], self.backend.device.type, self.backend.device.index or 0
+        alphabet = self.backend.metadata["character"]
         self.characters = ["", *alphabet.split("\n"), " "]  # CTC alphabet: blank, the model's characters, then space
 
     @staticmethod
@@ -159,12 +154,13 @@ class OCR(BaseSolution):
         kwargs.setdefault("max_det", 1000)  # a document page holds more words than the default 300 detections
         super().__init__(**kwargs)
         recognizer = self.CFG["recognizer"]
-        if recognizer in {"paddleocr", "tensorrt"}:
-            self.recognize = TextRecognizer(device=self.CFG["device"], engine=recognizer == "tensorrt")
+        if isinstance(recognizer, str):  # PaddleOCR model name, e.g. 'korean_PP-OCRv5_mobile_rec'
+            model = "PP-OCRv6_medium_rec" if recognizer in {"paddleocr", "tensorrt"} else recognizer
+            self.recognize = TextRecognizer(f"{model}.onnx", self.CFG["device"], engine=recognizer == "tensorrt")
         elif callable(recognizer):
             self.recognize = lambda crops: [(text, float(confidence)) for text, confidence in map(recognizer, crops)]
         else:
-            raise ValueError("recognizer must be 'paddleocr', 'tensorrt' or a callable accepting a BGR image crop.")
+            raise TypeError("recognizer must be a backend or PaddleOCR model name, or a callable reading a BGR crop.")
 
     @staticmethod
     def lines(polygons: np.ndarray) -> list[list[int]]:
@@ -201,7 +197,9 @@ class OCR(BaseSolution):
         """Read word polygons (N, 4, 2) one by one at any page rotation, returning the words in reading order.
 
         The page's text direction (mod 180°) is the words' long-side angle weighted by elongation; words under 2:1 abstain
-        (single characters are taller than wide), so a page of only those stays unrotated. The page is rotated so that
+        (single characters are taller than wide), so a page of only those stays unrotated. When a sideways vote weighs
+        at most 30% of the total long-side length, voters must also span at least twice the median short side, as an
+        upright narrow glyph such as `1` votes sideways too. The page is rotated so that
         direction runs left to right, where words are cropped upright and grouped into lines. Of that turn and its
         opposite, the one whose 8 widest words `recognize` reads more confidently wins, as upside-down text reads as
         low-confidence noise. Each word keeps its `detection_index` and `polygon` and gains its `line` number; words that
@@ -211,6 +209,8 @@ class OCR(BaseSolution):
             return []
         _, _, w, h, angle = ops.xyxyxyxy2xywhr(polygons).T  # w is the long side
         weight = np.where(w >= 2 * h, w - h, 0)
+        if (weight * np.cos(2 * angle)).sum() < 0 and weight.sum() <= 0.3 * w.sum():
+            weight *= w >= 2 * np.median(h)
         angle = 0.5 * np.arctan2((weight * np.sin(2 * angle)).sum(), (weight * np.cos(2 * angle)).sum())
         turns = []
         for turn in (0, np.pi):
@@ -254,6 +254,7 @@ class OCR(BaseSolution):
         if isinstance(self.CFG["imgsz"], int):  # never upscale: smaller images run at their own size
             self.track_add_args["imgsz"] = min(self.CFG["imgsz"], -(-max(im0.shape[:2]) // 32) * 32)
         self.extract_tracks(im0)
+        im0 = LoadPilAndNumpy._single_check(im0)  # three-channel BGR to read and draw, whatever the detector took
         if self.tracks.masks is not None:  # segmentation: each mask's minimum-area rectangle
             polygons = np.array([ops.xywhr2xyxyxyxy(ops.xyxyxyxy2xywhr(p[None]))[0] for p in self.tracks.masks.xy])
         elif len(self.boxes) and self.boxes.ndim == 3:  # OBB corners
@@ -270,7 +271,7 @@ class OCR(BaseSolution):
             for word in self.read_words(im0, polygons.astype(np.float32), self.recognize)
         ]
         annotator = SolutionAnnotator(
-            im0, self.line_width, font_size=max(self.line_width * 6, 12), example="".join(t["text"] for t in texts)
+            im0.copy(), self.line_width, max(self.line_width * 6, 12), example="".join(t["text"] for t in texts)
         )
         for t in texts:
             label = (f"{t['text']} {t['confidence']:.2f}" if self.show_conf else t["text"]) if self.show_labels else ""

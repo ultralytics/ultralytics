@@ -17,7 +17,7 @@ from .hailo import HailoBackend
 from .litert import LiteRTBackend
 from .mnn import MNNBackend
 from .ncnn import NCNNBackend
-from .onnx import ONNXBackend, ONNXIMXBackend
+from .onnx import ONNXBackend, ONNXIMXBackend, STEdgeAIBackend
 from .openvino import OpenVINOBackend
 from .paddle import PaddleBackend
 from .pytorch import PyTorchBackend, TorchScriptBackend
@@ -46,6 +46,7 @@ __all__ = [
     "PyTorchBackend",
     "QNNBackend",
     "RKNNBackend",
+    "STEdgeAIBackend",
     "TensorFlowBackend",
     "TensorRTBackend",
     "TorchScriptBackend",

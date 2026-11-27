@@ -10,7 +10,7 @@ keywords: YOLO26, Ultralytics YOLO, object detection, end-to-end NMS-free, YOLOE
 
 [Ultralytics](https://www.ultralytics.com) YOLO26 is a unified family of real-time vision models described in the [Ultralytics YOLO26 paper](https://arxiv.org/abs/2606.03748). It introduces native [end-to-end inference](../guides/end2end-detection.md), a lighter detection head, an updated training recipe, and task-specific heads for detection, segmentation, classification, pose estimation, and oriented detection.
 
-Across its five detection scales, YOLO26 reaches **40.9-57.5 mAP on COCO** at **1.7-11.8 ms T4 TensorRT latency**. The paper also reports **up to 43% faster CPU ONNX inference** for YOLO26n compared with YOLO11n on an Intel Xeon CPU @ 2.00 GHz.
+Across its five detection scales, YOLO26 reaches **40.9-57.5 mAP on COCO** with NMS, and **40.1-56.9 mAP** with NMS-free inference at **1.7-11.8 ms T4 TensorRT latency**. The paper also reports **up to 43% faster CPU ONNX inference** for YOLO26n compared with YOLO11n on an Intel Xeon CPU @ 2.00 GHz.
 
 See the [unreleased YOLO27 preview](yolo27.md) for planned architecture, tasks, and preliminary benchmarks.
 
@@ -47,6 +47,8 @@ See the [unreleased YOLO27 preview](yolo27.md) for planned architecture, tasks, 
 !!! tip "Try on Ultralytics Platform"
 
     Explore and run YOLO26 models directly on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26).
+
+<platform-predict src="https://platform.ultralytics.com/ultralytics/yolo26/yolo26n"></platform-predict>
 
 The YOLO26 model family is built around four design areas:
 
@@ -103,7 +105,7 @@ This unified framework covers real-time detection, instance segmentation, semant
 
 !!! note "Architecture-only variants"
 
-    [`yolo26-p2.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/26/yolo26-p2.yaml) and [`yolo26-p6.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/26/yolo26-p6.yaml) add a P2 (small-object) or P6 (large-input) detection head and are shipped as YAML architectures only. No scale-specific `yolo26*-p2.pt` or `yolo26*-p6.pt` weights are released. Instantiate a scaled config from YAML (for example, `YOLO("yolo26n-p6.yaml")`) and train or fine-tune it as needed.
+    [`yolo26-p2.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/26/yolo26-p2.yaml) and [`yolo26-p6.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/26/yolo26-p6.yaml) add a P2 (small-object) or P6 (large-input) detection head and are shipped as YAML architectures only. No scale-specific `yolo26*-p2.pt` or `yolo26*-p6.pt` weights are released. Instantiate a scaled config from YAML (for example, `YOLO("yolo26n-p6.yaml")`) and train or fine-tune it as needed; [Train a YOLO26 P2 Model from Pretrained Weights](../guides/model-yaml-config.md#train-a-yolo26-p2-model-from-pretrained-weights) shows how to start from `yolo26n.pt` and check that the P2 output is there.
 
 ## Performance Metrics
 

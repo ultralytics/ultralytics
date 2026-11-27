@@ -1,7 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from pathlib import Path
+
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
+from ultralytics.utils import ASSETS, ASSETS_URL, DATASETS_DIR, WEIGHTS_DIR, checks
+from ultralytics.utils.downloads import safe_download
 
 # Shared test constants for model, config, data source, and environment info
 MODEL = WEIGHTS_DIR / "path with spaces" / "yolo26n.pt"  # path with spaces to test path handling
@@ -26,6 +29,16 @@ SOLUTION_ASSETS = {
     "parking_model": "solutions_ci_parking_model.pt",
     "similarity_images": "4-imgs-similaritysearch.zip",
 }
+
+
+def coco_eval_image() -> Path:
+    """Cache official detection and pose annotations and a val2017 image containing a person crowd."""
+    for name in "instances", "person_keypoints":
+        safe_download(f"{ASSETS_URL}/{name}_val2017.json", dir=DATASETS_DIR / "annotations")
+    return safe_download(
+        "https://s3.amazonaws.com/images.cocodataset.org/val2017/000000007511.jpg", dir=DATASETS_DIR / "coco-eval"
+    )
+
 
 __all__ = (
     "CFG",

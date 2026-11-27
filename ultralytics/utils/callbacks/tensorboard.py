@@ -1,7 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import torch
+
 from ultralytics.utils import LOGGER, TESTS_RUNNING, colorstr, torch_utils
-from ultralytics.utils.torch_utils import smart_inference_mode
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -11,7 +12,6 @@ try:
     # Imports below only required if TensorBoard enabled
     from copy import deepcopy
 
-    import torch
     from torch.utils.tensorboard import SummaryWriter
 
 except (ImportError, AssertionError, TypeError, AttributeError):
@@ -38,7 +38,7 @@ def _log_scalars(scalars: dict, step: int = 0) -> None:
             WRITER.add_scalar(k, v, step)
 
 
-@smart_inference_mode()
+@torch.no_grad()
 def _log_tensorboard_graph(trainer) -> None:
     """Log model graph to TensorBoard.
 
@@ -65,7 +65,7 @@ def _log_tensorboard_graph(trainer) -> None:
     # Try simple method first (YOLO)
     try:
         trainer.model.eval()  # place in .eval() mode to avoid BatchNorm statistics changes
-        WRITER.add_graph(torch.jit.trace(torch_utils.unwrap_model(trainer.model), im, strict=False), [])
+        WRITER.add_graph(torch.jit._trace.trace(torch_utils.unwrap_model(trainer.model), im, strict=False), [])
         LOGGER.info(f"{PREFIX}model graph visualization added ✅")
         return
     except Exception as e1:
@@ -79,7 +79,7 @@ def _log_tensorboard_graph(trainer) -> None:
                     m.export = True
                     m.format = "torchscript"
             model(im)  # dry run
-            WRITER.add_graph(torch.jit.trace(model, im, strict=False), [])
+            WRITER.add_graph(torch.jit._trace.trace(model, im, strict=False), [])
             LOGGER.info(f"{PREFIX}model graph visualization added ✅")
         except Exception as e2:
             LOGGER.warning(f"{PREFIX}TensorBoard graph visualization failure: {e1} -> {e2}")

@@ -36,6 +36,7 @@ from ultralytics.utils import (
     TORCHVISION_VERSION,
     WINDOWS,
     colorstr,
+    cpu_threads,
 )
 from ultralytics.utils.checks import check_requirements, check_version
 from ultralytics.utils.cpu import CPUInfo
@@ -201,8 +202,6 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
     if isinstance(device, torch.device):
         if device.type == "cuda" and device.index is None:
             return ""  # indexless torch.device('cuda') means the current CUDA device, i.e. the '' default request
-        if device.type == "cpu":
-            return "cpu"  # an indexed torch.device('cpu', 0) is the same cpu
         if device.type in {"npu", "xpu"}:
             return device.type if device.index is None else f"{device.type}:{device.index}"
     device = str(device).lower()
@@ -210,6 +209,8 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
     if device == "cuda":
         device = "0"
+    elif device.startswith("cpu:") and device[4:].isdigit():
+        device = "cpu"  # an indexed 'cpu:0' or torch.device('cpu', 0) is the same cpu
     for backend in ("npu", "xpu"):
         if device.startswith(backend):
             indices = device[len(backend) :].lstrip(":").replace(f"{backend}:", "")
@@ -361,7 +362,7 @@ def select_device(device="", newline=False, verbose=True):
         arg = "cpu"
 
     if arg in {"cpu", "mps"}:
-        torch.set_num_threads(NUM_THREADS)  # reset OMP_NUM_THREADS for cpu training
+        torch.set_num_threads(cpu_threads(NUM_THREADS))  # reset OMP_NUM_THREADS for cpu training
     if arg == "cpu" and MACOS and ARM64 and TORCH_2_3:
         torch.backends.nnpack.set_flags(False)  # NNPACK conv2d at batch>=16 is 6x slower than im2col on Apple silicon
     if verbose:

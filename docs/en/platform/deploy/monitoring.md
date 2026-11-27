@@ -113,7 +113,7 @@ Health checks auto-retry while unhealthy and stop once the endpoint responds. Op
 health check, and the re-ping button triggers another one, which doubles as a way to warm a scaled-to-zero endpoint before
 sending traffic.
 
-![Ultralytics Platform Deployment Card Health Check Healthy With Latency](https://cdn.ul.run/i/38a6788a1948765e4e3120de79812717.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Card Health Check Healthy With Latency](https://cdn.ul.run/i/ef3a490679273ff494de3b05c897e81e.avif)<!-- screenshot -->
 
 !!! info "Cold Start Tolerance"
 
@@ -127,7 +127,7 @@ Open the deployment page of a **Ready** dedicated endpoint and select the **Moni
 
     Monitoring is available on every **Ready** dedicated endpoint, including default-size endpoints on the Free plan. Existing endpoints are not automatically updated with every runtime release, so an older endpoint may show **Monitoring unavailable** until its runtime is updated.
 
-![Ultralytics Platform Deployment Monitoring Temporary Examples And Statistics](https://cdn.ul.run/i/a8466113958764047eb0b1ad9fc6989a.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Monitoring Temporary Examples And Statistics](https://cdn.ul.run/i/b0d35e30ba6add4ad53218a36c7529e9.avif)<!-- screenshot -->
 
 !!! warning "Temporary Data"
 
@@ -142,7 +142,7 @@ The gallery contains recent processed images with prediction overlays. Open an i
 - **Replacement:** Older examples are replaced when either limit is reached. An example may become unavailable while you are viewing it.
 - **Storage:** Temporary examples remain in endpoint memory. Saving them to a dataset uses normal workspace storage and processing limits.
 
-![Ultralytics Platform Deployment Monitoring Prediction Viewer](https://cdn.ul.run/i/0792c980f50b10ef67a09a4fd7e3bbc3.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Monitoring Prediction Viewer](https://cdn.ul.run/i/765a0405e10e171b6560874bfdb15cd5.avif)<!-- screenshot -->
 
 ### Save Examples to a Dataset
 
@@ -153,7 +153,7 @@ Workspace members with content editing permission can save examples to a dataset
 3. Choose an existing dataset with the same task as the deployed model. Connected-source datasets are excluded; create a compatible dataset first if none is available.
 4. Click the **Save** button, which shows the selected image count, then open the dataset to follow processing.
 
-Selected images and predictions are copied through the standard dataset upload and ingestion workflow. Normal quota, class mapping, and duplicate handling apply. Saving leaves the temporary examples in the gallery; successfully ingested dataset images survive endpoint restarts and deletion. Review predicted labels before using them for training. Each saved image records `deploymentId`, `deploymentName`, `deploymentRegion`, and `deploymentRegionName` in its [custom metadata](../data/datasets.md#fullscreen-viewer), which dataset search matches; names are recorded as they were at save time, and an image skipped as a duplicate keeps its existing metadata.
+Selected images and predictions are copied through the standard dataset upload and ingestion workflow. Normal quota, class mapping, and duplicate handling apply. Saving leaves the temporary examples in the gallery; successfully ingested dataset images survive endpoint restarts and deletion. Review predicted labels before using them for training. Each saved image records `deploymentId`, `deploymentName`, `deploymentRegion`, `deploymentRegionName`, and `capturedAt` (when the endpoint captured the example) in its [custom metadata](../data/datasets.md#fullscreen-viewer), which dataset search matches; names are recorded as they were at save time, and an image skipped as a duplicate keeps its existing metadata. Endpoints on a current runtime also record `modelId`, the ID of the model that made the prediction, so saved images still show which model labeled them after you replace the endpoint's model.
 
 ![Ultralytics Platform Deployment Monitoring Save Examples To Dataset](https://cdn.ul.run/i/6206b03431d60b029528150ddbdaba58.avif)<!-- screenshot -->
 
@@ -180,9 +180,9 @@ Available charts depend on the task and collected predictions:
 | **Prediction Dimensions** | Prediction width and height relative to the input image, when box dimensions are available                      |
 | **Prediction Locations**  | Spatial heatmap of predictions, when location data is available                                                 |
 
-![Ultralytics Platform Deployment Monitoring Prediction Statistics](https://cdn.ul.run/i/dd749ddde22b94239967d3dce40ad1c1.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Monitoring Prediction Statistics](https://cdn.ul.run/i/8e9d5dd5c93505e96cbb524694b69cc2.avif)<!-- screenshot -->
 
-![Ultralytics Platform Deployment Monitoring Confidence And Spatial Statistics](https://cdn.ul.run/i/a0c947af96b544fd7bc478323c12422b.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Monitoring Confidence And Spatial Statistics](https://cdn.ul.run/i/aa6ad619255bb1a784ab78a54803fb52.avif)<!-- screenshot -->
 
 !!! tip "Interpreting Statistics"
 
@@ -194,7 +194,7 @@ Monitoring refreshes automatically while its panel is open and visible, and paus
 
 Each deployment page includes a `Logs` tab for viewing recent log entries:
 
-![Ultralytics Platform Deployment Card Logs Tab With Severity Filter](https://cdn.ul.run/i/ad6dfa8794a177c51b61e489df5dc1db.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Card Logs Tab With Severity Filter](https://cdn.ul.run/i/87037aefcf97a0fcde61bdb431b411cc.avif)<!-- screenshot -->
 
 ### Log Entries
 

@@ -1,9 +1,9 @@
 ---
 plans: [free, pro, enterprise]
-title: Cloud GPU Training
+title: Train YOLO Models on Cloud GPUs
 comments: true
-description: Train YOLO models on cloud GPUs with Ultralytics Platform. Configure runs, pick a GPU, monitor live metrics, stream remote training, and manage billing.
-keywords: Ultralytics Platform, cloud training, GPU training, remote training, YOLO, model training, machine learning
+description: Train custom YOLO models on cloud GPUs with Ultralytics Platform. Pick a GPU, see the cost upfront, watch live metrics, or stream local runs.
+keywords: Ultralytics Platform, YOLO cloud training, train YOLO in the cloud, cloud GPU training, remote training, custom YOLO model, model training
 ---
 
 # Cloud Training
@@ -22,7 +22,7 @@ flowchart TD
 
 ## Training Dialog
 
-Start training from the platform UI by clicking **New Model** on any project or dataset page. The training dialog has two tabs: **Cloud Training** and **Local Training**. When the selected dataset lives on an [On Premise](../integrations/on-premise.md) host, the first tab becomes **On Premise** and the Local Training tab is hidden — that dataset can only be trained on its own host, which requires an Enterprise plan and a connected, online worker.
+Click **New Model** from a project or dataset you can edit. To start from another workspace's public dataset page, [clone the dataset](../data/datasets.md#clone-dataset) and open the copy. The training dialog has two tabs: **Cloud Training** and **Local Training**. When the selected dataset lives on an [On Premise](../integrations/on-premise.md) host, the first tab becomes **On Premise** and the Local Training tab is hidden — that dataset can only be trained on its own host, which requires an Enterprise plan and a connected, online worker.
 
 ![Ultralytics Platform Training Dialog Cloud Tab](https://cdn.ul.run/i/6ca4d4aa87bf818d83393422aa9f36dc.avif)<!-- screenshot -->
 
@@ -141,7 +141,7 @@ This preserves the data used for the run even if you later add or remove images,
     - **H200 NVL / H200 SXM**: 141–143 GB Hopper for high-memory workloads (available on all plans)
     - **B200 / B300**: 180–288 GB NVIDIA Blackwell for the largest workloads — requires [Pro or Enterprise](../account/billing.md#plans)
 
-The dialog shows your current **balance** and a **Top Up** button. The cost card estimates the total duration and price for your configuration (model size, dataset images, epochs, image size, batch size, optimizer, and GPU speed) and also reports the estimated seconds per epoch and the dataset image count.
+The dialog shows your current **balance** and a **Top Up** button. The cost card estimates the total duration and price for your configuration (model size, dataset images, epochs, image size, batch size, optimizer, and GPU speed) and also reports the estimated time per epoch and the dataset image count. Durations roll up into hours and days, such as `~5d 19h` total and `~1h 23m` per epoch, and appear once a GPU is selected.
 
 !!! tip "Live Capacity and Automatic Failover"
 
@@ -254,11 +254,15 @@ Train on your own hardware while streaming metrics to the platform.
 
 1. Go to [`Settings > API Keys`](../account/api-keys.md)
 2. Create a new key (or the platform auto-creates one when you open the Local Training tab)
-3. Set the environment variable:
+3. Save the key once with `yolo login`, which works in any terminal on Linux, macOS, and Windows:
 
 ```bash
-export ULTRALYTICS_API_KEY="YOUR_API_KEY"
+yolo login YOUR_API_KEY
 ```
+
+Or set the `ULTRALYTICS_API_KEY` environment variable for the current terminal session, with the [command for your shell](../account/api-keys.md#environment-variable) (`export` on Linux and macOS, `$env:` in PowerShell, `set` in Command Prompt).
+
+The **Local Training** tab's command starts with the Linux/macOS `export` line, which PowerShell and Command Prompt don't recognize. On Windows, run `yolo login` first, then paste only the `yolo train` line into PowerShell; Command Prompt doesn't understand the single quotes the command puts around values with spaces or brackets.
 
 ### Train with Streaming
 
@@ -267,8 +271,7 @@ Use the `project` and `name` parameters to stream metrics:
 === "CLI"
 
     ```bash
-    yolo train model=yolo26n.pt data=coco.yaml epochs=100 \
-      project=username/my-project name=experiment-1
+    yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=experiment-1
     ```
 
 === "Python"
@@ -284,6 +287,11 @@ Use the `project` and `name` parameters to stream metrics:
         name="experiment-1",
     )
     ```
+
+`project` names the Platform project and `name` names the model. If the project doesn't exist, the first run creates it
+with the workspace's [default visibility](../account/settings.md#default-visibility). When `project` is a local
+directory, such as `/home/me/runs` or `C:\runs\detect`, the run still saves there, and from `ultralytics` 8.4.213 the
+Platform project is named after its last folder (`runs`, `detect`) instead of the whole path.
 
 The **Local Training** tab in the training dialog shows a pre-configured command with your API key, selected parameters, and advanced arguments included.
 
@@ -304,8 +312,7 @@ Train with datasets stored on the platform using the [`ul://` URI format](../dat
 === "CLI"
 
     ```bash
-    yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100 \
-      project=username/my-project name=exp1
+    yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100 project=username/my-project name=exp1
     ```
 
 === "Python"
@@ -620,4 +627,4 @@ Yes. A failed model shows an error banner with a **Retry Training** action (Edit
 
 ### Can I train from a dataset page?
 
-Yes, the **New Model** button on dataset pages opens the training dialog with the dataset preselected and locked. You then select a project and model to begin training.
+Yes. On a dataset you can edit, **New Model** opens the training dialog with that dataset preselected and locked. You then select a project and model to begin training.

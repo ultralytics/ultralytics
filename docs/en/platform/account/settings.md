@@ -80,8 +80,9 @@ or Private; click **Save changes** to apply them. Each workspace has its own def
 owners and admins can change them. Until they are changed, new projects and datasets start Private in Enterprise
 workspaces and Public otherwise. You can still choose the visibility of each new project or dataset when you create it,
 except [On Premise](../integrations/on-premise.md) datasets, which are always private. Clones start private when the
-default is Private and otherwise keep the source's visibility, which you can change in the clone dialog. [Roboflow
-imports](../integrations/roboflow.md) and the projects that remote training creates use the default directly.
+default is Private and otherwise keep the source's visibility, which you can change in the clone dialog.
+[Roboflow](../integrations/roboflow.md) and [Label Studio](../integrations/label-studio.md) imports and the projects
+that remote training creates use the default directly.
 
 ### Social Links
 
@@ -241,15 +242,15 @@ are deleted automatically.
 ## API Keys Tab
 
 The `API Keys` tab lets you create and manage API keys for remote training and inference, and stores provider keys for
-Agents, class-prompted annotation, paid image generation, and Roboflow and W&B imports. Only the workspace owner can
-view Ultralytics API keys or add, replace, or revoke any key — a workspace key acts as the owner. See
-[API Keys](api-keys.md) for full documentation.
+Agents, class-prompted annotation, paid image generation, and Roboflow, Label Studio, and W&B imports. Only the
+workspace owner can view Ultralytics API keys or add, replace, or revoke any key — a workspace key acts as the owner.
+See [API Keys](api-keys.md) for full documentation.
 
 ## Plans Tab
 
 The `Plans` tab lets you compare available plans and upgrade or downgrade your subscription.
 
-![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/cad040a8c00329e621ab2d0c0cf53b5f.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/35c3ef00fbda8e1c50216c655530a649.avif)<!-- screenshot -->
 
 {% include "macros/platform-plan-comparison.md" %}
 
@@ -269,7 +270,7 @@ See [Billing](billing.md) for detailed plan information, pricing, and upgrade in
 The `Billing` tab is where you manage credits, payment methods, and review transaction history. Credits pay for
 metered compute: cloud training, batch annotation, and custom-resource endpoint uptime.
 
-![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/9e97863665b58a2b009f700b0df120e9.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/13a13fe33434819e8a484f49030883a7.avif)<!-- screenshot -->
 
 From this tab you can:
 
@@ -332,7 +333,7 @@ The `Teams` tab lets you manage workspace members, roles, and invitations. Membe
 [Pro and Enterprise plans](billing.md#plans) — on the Free plan the tab shows the roles reference and an
 **Upgrade to Pro** button instead of an invite control.
 
-![Ultralytics Platform Teams Member List With Roles](https://cdn.ul.run/i/5f238fe52109870671d17728d8f3ca94.avif)<!-- screenshot -->
+![Ultralytics Platform Teams Member List With Roles](https://cdn.ul.run/i/ea2bf2f23ea18d16f7ca3bd79556572a.avif)<!-- screenshot -->
 
 The member card header shows the workspace name, plan badge, your own role, and a seat summary such as
 `3 of 5 seats used · 2 available (includes 1 pending invite)`.
@@ -396,7 +397,7 @@ active workspace.
 - **Labelbox** — upload a [Labelbox](../integrations/labelbox.md) NDJSON export directly, with no key to connect.
 - **LabelMe** — upload a zipped folder of LabelMe JSON annotations and their images directly, with no conversion or key. See the [LabelMe guide](../integrations/labelme.md).
 - **CVAT** — marked **Coming Soon**; upload a CVAT Ultralytics YOLO export today. See [CVAT](../integrations/cvat.md).
-- **Label Studio** — marked **Coming Soon**; upload a Label Studio "YOLO with Images" export today. See [Label Studio](../integrations/label-studio.md).
+- **Label Studio** — preview and import projects from hosted [Label Studio](../integrations/label-studio.md) using an access token that the workspace owner connects.
 
 !!! note "Cloud Storage Requires a Paid Plan"
 

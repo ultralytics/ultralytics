@@ -36,7 +36,10 @@ flowchart TD
 
 ## Get Started
 
-You can sign up and log in with a Google or GitHub account, or with your email address.
+You can sign up and log in with a Google or GitHub account, or with your email address. An email sign-up asks for a code
+sent to that address. A Google or GitHub sign-up needs an email address the provider has already verified. If it
+reports yours as unverified, Platform creates no account and asks you to verify the email with that provider, for
+example in your GitHub email settings, then try again.
 
 ![Ultralytics Platform Signup](https://cdn.ul.run/i/1683ea5d0337eeb6e9099ac434afaedb.avif)<!-- screenshot -->
 
@@ -75,7 +78,7 @@ The onboarding flow guides you through three steps:
 2. **Data Region** - Select US, EU, or AP with a visual world map showing latency
 3. **Complete** - Review your selections, optionally apply a promo code, and finish signup to claim your welcome credits
 
-![Ultralytics Platform Onboarding Profile With Use Case](https://cdn.ul.run/i/99ffff96be666b6e19eb4ba525d6b554.avif)<!-- screenshot -->
+![Ultralytics Platform Onboarding Profile With Use Case](https://cdn.ul.run/i/94e768849385e8d032ddf0e09007607e.avif)<!-- screenshot -->
 
 ??? tip "Update Later"
 
@@ -95,7 +98,7 @@ The sidebar provides access to all Platform sections:
 | ----------- | ----------- | ------------------------------------------------------------------------------------- |
 | **Top**     | Search      | Quick search across all your resources (Cmd+K)                                        |
 |             | Home        | Dashboard with quick actions and recent activity                                      |
-|             | Explore     | Discover public datasets, images, models, and projects                                |
+|             | Explore     | Discover public datasets, images, projects, and models                                |
 |             | Agents      | Build visual [Agents](agents.md) workflows with YOLO, conditions, and VLMs            |
 | **Content** | Annotate    | Your datasets, with a `+` shortcut to create one                                      |
 |             | Train       | Your projects containing trained models                                               |
@@ -146,7 +149,7 @@ Press `Cmd+K` (Mac) or `Ctrl+K` (Windows/Linux) to open the search bar. Search a
 
 ### AI Chat Assistant
 
-Click **Ask AI** to work with an AI agent that automates tasks across Ultralytics Platform. It works directly with your datasets and models to annotate images, run training experiments, compare results, and export or deploy models. See [AutoTrain with Ask AI](train/autotrain.md) for example prompts and setup for your own coding agent.
+Click **Ask AI** to work with an AI agent that automates tasks across Ultralytics Platform. It works directly with your datasets and models to annotate images, run training experiments, compare results, and export or deploy models. See [AutoTrain with Ask AI](train/autotrain.md) for example prompts and setup for your own coding agent. To show it a screenshot or a training log, attach up to 3 files (3 MB in total): click `+` and choose **Add Photos & Files**, drag them into the chat, or paste an image with `Cmd/Ctrl+V`.
 
 ### Onboarding Tours
 
@@ -174,7 +177,7 @@ To replay any tour:
 
 Open `Annotate` in the sidebar and click the `+` to create a new dataset. You can also drag and drop files directly onto the Datasets card on the Home dashboard.
 
-![Ultralytics Platform Quickstart Upload Dialog](https://cdn.ul.run/i/87cee59e4fb4c86c4cf5a3e86db73b32.avif)<!-- screenshot -->
+![Ultralytics Platform Quickstart Upload Dialog](https://cdn.ul.run/i/44fd6508d18ed34ba39fe9dad0c23bd0.avif)<!-- screenshot -->
 
 The **New Dataset** dialog offers four sources. This quickstart uses **Upload**; the others are covered in
 [Datasets](data/datasets.md) and [Integrations](integrations/index.md):
@@ -237,7 +240,7 @@ After upload, the platform automatically processes your data:
 
 Projects help you organize related models and experiments. Open `Train` in the sidebar and click the `+` to create a project. You can also drop `.pt` weights onto the Projects card on the Home dashboard to create a project and import them in one step.
 
-![Ultralytics Platform Projects Create](https://cdn.ul.run/i/9ae33c3a5c61bf59dc6b6b993abdec12.avif)<!-- screenshot -->
+![Ultralytics Platform Projects Create](https://cdn.ul.run/i/a976e5512033a2c33eb701337fea1724.avif)<!-- screenshot -->
 
 Enter a name and optional description. Projects organize model runs and imported or cloned model weights, with charts for comparing completed training results.
 
@@ -245,7 +248,7 @@ Read more about [projects](train/projects.md).
 
 ## Train Your First Model
 
-From your project, click `New Model` to open the **Train New Model** dialog. You can also start from a dataset page, in which case the dataset is locked in and you pick the destination project instead.
+Sign in and click `New Model` in a project you can edit to open the **Train New Model** dialog. If you start from a dataset you can edit, the dataset is locked in and you choose the destination project. For another workspace's public dataset, check the **Official** tab in your project's dataset picker. You can select listed datasets such as COCO8 directly. For other Platform-hosted public datasets, [clone the dataset](data/datasets.md#clone-dataset) into a workspace where you can train and open the copy.
 
 ![Ultralytics Platform Quickstart Training Dialog Cloud Tab](https://cdn.ul.run/i/6ca4d4aa87bf818d83393422aa9f36dc.avif)<!-- screenshot -->
 
@@ -277,7 +280,7 @@ Once training starts, open the model's `Train` tab to monitor progress in real t
 | **Console**    | Live training log output                                |
 | **System**     | GPU utilization, memory usage, hardware metrics         |
 
-![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.ul.run/i/13e91f2728627c825f8efcd8fe7916b4.avif)<!-- screenshot -->
+![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.ul.run/i/508405c440b56bd4a4c16bd994ccc450.avif)<!-- screenshot -->
 
 Metrics stream in real time via Server-Sent Events (SSE). The **Validation** subtab appears when validation results are available, including the [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix), PR curves, and F1 curves produced by the run.
 
@@ -385,15 +388,15 @@ Read more about [endpoints](deploy/endpoints.md).
 
 If you prefer to train on your own hardware, you can use your API key to train anywhere and stream metrics to Ultralytics Platform.
 
-The fastest route is the **Local Training** tab in the training dialog: it builds the full command for your selected model, dataset, and parameters, and fills in an API key (creating one if you don't have one yet). Copy it and run it in your terminal.
+The fastest route is the **Local Training** tab in the training dialog: it builds the full command for your selected model, dataset, and parameters, and fills in an API key (creating one if you don't have one yet). Copy it and run it in your terminal. On Windows, see [Set Up API Key](train/cloud-training.md#set-up-api-key) first.
 
 To assemble the command yourself:
 
 1. Generate an API key in [`Settings > API Keys`](account/api-keys.md)
-2. Set the environment variable and train with a `username/project` value for `project`:
+2. Save the key with `yolo login`, which works on Linux, macOS, and Windows, and train with a `username/project` value for `project`:
 
 ```bash
-export ULTRALYTICS_API_KEY="YOUR_API_KEY"
+yolo login YOUR_API_KEY
 
 yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
 ```

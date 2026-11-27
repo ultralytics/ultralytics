@@ -10,6 +10,7 @@ import cv2
 
 from ultralytics.data.loaders import LoadPilAndNumpy
 from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.patches import imread
 
 
 class LLM:
@@ -185,7 +186,7 @@ class LLM:
         """Convert an image URL, path, or array to an OpenAI image URL."""
         if isinstance(source, str) and source.lower().startswith(("http://", "https://", "data:image/")):
             return source
-        image = cv2.imread(str(source)) if isinstance(source, (str, Path)) else LoadPilAndNumpy._single_check(source)
+        image = imread(source) if isinstance(source, (str, Path)) else LoadPilAndNumpy._single_check(source)
         if image is None:
             raise ValueError(f"Unable to read image source {source!r}.")
         success, buffer = cv2.imencode(".jpg", image)

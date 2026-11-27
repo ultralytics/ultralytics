@@ -11,11 +11,11 @@ Whether you're deploying models on [edge devices](https://www.ultralytics.com/gl
 
 ## 💡 Example Applications
 
-Browse through the community-contributed examples below. These projects demonstrate various use cases and deployment strategies for Ultralytics YOLO models across different platforms and programming languages. All C++ examples are grouped together under [`./cpp`](./cpp) with a combined build-and-test guide.
+Browse through the community-contributed examples below. These projects demonstrate various use cases and deployment strategies for Ultralytics YOLO models across different platforms and programming languages. Jupyter notebooks for the [YOLO tutorial](./tutorial.ipynb), [object tracking](./object_tracking.ipynb), [object counting](./object_counting.ipynb), and [heatmaps](./heatmaps.ipynb) sit at the top of this directory.
 
 ### C++
 
-All C++ examples live under [`./cpp`](./cpp) and support every YOLO task and generation. See the [C++ examples guide](./cpp) for a combined build-and-test walkthrough.
+All C++ examples live under [`./cpp`](./cpp) and support every YOLO task except depth across YOLOv8, YOLO11, and YOLO26. See the [C++ examples guide](./cpp) for a combined build-and-test walkthrough.
 
 | Title                                      | Backend      | Contributor                                                                                                                                                                                       |
 | ------------------------------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -28,22 +28,24 @@ All C++ examples live under [`./cpp`](./cpp) and support every YOLO task and gen
 
 ### Python
 
+All Python examples live under [`./python`](./python). The inference examples support every YOLO task and generation through shared code in [`./python/common`](./python/common). See the [Python examples guide](./python) for details.
+
 | Title                                                                                                           | Backend               | Contributor                                                                                                                                         |
 | --------------------------------------------------------------------------------------------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [YOLO OpenCV ONNX Detection](./YOLOv8-OpenCV-ONNX-Python)                                                       | OpenCV / ONNX         | [Farid Inawan](https://github.com/frdteknikelektro)                                                                                                 |
-| [YOLOv8 ONNX Runtime](./YOLOv8-ONNXRuntime)                                                                     | ONNX Runtime          | [Semih Demirel](https://github.com/semihhdemirel)                                                                                                   |
-| [RTDETR ONNX Runtime](./RTDETR-ONNXRuntime-Python)                                                              | ONNX Runtime          | [Semih Demirel](https://github.com/semihhdemirel)                                                                                                   |
-| [YOLOv8 Segmentation ONNX Runtime](./YOLOv8-Segmentation-ONNXRuntime-Python)                                    | ONNX Runtime          | [jamjamjon](https://github.com/jamjamjon)                                                                                                           |
-| [High Resolution Tiling](./YOLO-High-Resolution-Tiling)                                                         | Ultralytics           | [Ultralytics](https://github.com/ultralytics)                                                                                                       |
-| [YOLO Region Counter](./YOLOv8-Region-Counter)                                                                  | Region Counting       | [Muhammad Rizwan Munawar](https://github.com/RizwanMunawar) ([See also Region Counting Guide](https://docs.ultralytics.com/guides/region-counting)) |
+| [YOLO ONNX Runtime Python](./python/ONNXRuntime)                                                                | ONNX Runtime          | [Semih Demirel](https://github.com/semihhdemirel), [jamjamjon](https://github.com/jamjamjon)                                                        |
+| [YOLO OpenCV DNN Python](./python/OpenCV-DNN)                                                                   | OpenCV DNN            | [Farid Inawan](https://github.com/frdteknikelektro)                                                                                                 |
+| [YOLO Axelera Voyager](./python/Axelera)                                                                        | Axelera               | [Ultralytics](https://github.com/ultralytics)                                                                                                       |
+| [YOLO Action Recognition](./python/Action-Recognition)                                                          | Ultralytics           | [Ultralytics](https://github.com/ultralytics)                                                                                                       |
+| [YOLO Interactive Tracking](./python/Interactive-Tracking)                                                      | Ultralytics           | [Alireza Ghaderi](https://github.com/alireza787b)                                                                                                   |
+| [High Resolution Tiling](./python/High-Resolution-Tiling)                                                       | Ultralytics           | [Ultralytics](https://github.com/ultralytics)                                                                                                       |
+| [YOLO Region Counter](./python/Region-Counter)                                                                  | Ultralytics           | [Muhammad Rizwan Munawar](https://github.com/RizwanMunawar) ([See also Region Counting Guide](https://docs.ultralytics.com/guides/region-counting)) |
 | [YOLOv8 on NVIDIA Jetson (TensorRT and DeepStream)](https://wiki.seeedstudio.com/YOLOv8-DeepStream-TRT-Jetson/) | TensorRT / DeepStream | [Lakshantha](https://github.com/lakshanthad) ([See also DeepStream Guide](https://docs.ultralytics.com/guides/deepstream-nvidia-jetson))            |
 
 ### Rust
 
-| Title                                                             | Backend      | Contributor                               |
-| ----------------------------------------------------------------- | ------------ | ----------------------------------------- |
-| [YOLOv8 All Tasks ONNX Runtime Rust](./YOLOv8-ONNXRuntime-Rust)   | ONNX Runtime | [jamjamjon](https://github.com/jamjamjon) |
-| [YOLOv5-YOLO11 ONNX Runtime Rust](./YOLO-Series-ONNXRuntime-Rust) | ONNX Runtime | [jamjamjon](https://github.com/jamjamjon) |
+| Title                                               | Backend      | Contributor                               |
+| --------------------------------------------------- | ------------ | ----------------------------------------- |
+| [YOLO ONNX Runtime Rust](./YOLOv8-ONNXRuntime-Rust) | ONNX Runtime | [jamjamjon](https://github.com/jamjamjon) |
 
 ### C# / .NET
 
@@ -53,7 +55,7 @@ All C++ examples live under [`./cpp`](./cpp) and support every YOLO task and gen
 | [YOLO .NET ONNX Detection (Yolov8.Net)](https://www.nuget.org/packages/Yolov8.Net) | ONNX         | [Samuel Stainback](https://github.com/sstainba) |
 | [RTDETR ONNX Runtime C#](https://github.com/Kayzwer/yolo-cs/blob/master/RTDETR.cs) | ONNX Runtime | [Kayzwer](https://github.com/Kayzwer)           |
 
-## 🤝 How to Contribute
+## 🤝 Contributing
 
 We actively encourage contributions from our vibrant community! Sharing your examples, applications, and guides helps others learn and build amazing things with [Ultralytics](https://www.ultralytics.com). If you have a project you'd like to share, please follow these steps:
 

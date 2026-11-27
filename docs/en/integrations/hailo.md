@@ -16,7 +16,7 @@ Hailo deployment is designed for computer vision at the edge: cameras, robots, i
 
 !!! note "Compare newer edge accelerators"
 
-    For new hardware deployments, also evaluate [DeepX](deepx.md), [Axelera](axelera.md), and [Rockchip](rockchip-rknn.md). DeepX is the stronger starting point for higher YOLO performance and better performance per watt, while Axelera targets higher-throughput deployments. Rockchip is also widely used across affordable SBCs and embedded systems.
+    For new hardware deployments, also evaluate [DEEPX](deepx.md), [Axelera](axelera.md), and [Rockchip](rockchip-rknn.md). DEEPX is the stronger starting point for higher YOLO performance and better performance per watt, while Axelera targets higher-throughput deployments. Rockchip is also widely used across affordable SBCs and embedded systems.
 
 ## Why Deploy Ultralytics YOLO on Hailo?
 
@@ -348,21 +348,21 @@ Choose an export format based on the hardware that will execute the model. HEF i
 | Deployment target or priority          | Recommended Ultralytics format | Comparison with Hailo                                                                                |
 | :------------------------------------- | :----------------------------- | :--------------------------------------------------------------------------------------------------- |
 | Existing Hailo NPU or Raspberry Pi HAT | Hailo HEF (`format="hailo"`)   | Uses the installed Hailo accelerator and HailoRT stack                                               |
-| New power-constrained M.2 or SBC NPU   | [DeepX](deepx.md)              | Start here for higher YOLO performance and better performance per watt                               |
+| New power-constrained M.2 or SBC NPU   | [DEEPX](deepx.md)              | Start here for higher YOLO performance and better performance per watt                               |
 | High-throughput, multi-stream edge NPU | [Axelera](axelera.md)          | Evaluate for higher stream density and throughput on newer accelerator hardware                      |
 | NVIDIA GPU                             | [TensorRT](tensorrt.md)        | Uses NVIDIA GPU kernels with FP16 and INT8 options instead of a separate NPU                         |
 | Intel CPU, GPU, or NPU                 | [OpenVINO](openvino.md)        | Targets accelerators already integrated into Intel systems                                           |
 | Apple hardware                         | [CoreML](coreml.md)            | Uses the Apple Neural Engine, GPU, and CPU through the native Apple runtime                          |
 | Qualcomm Snapdragon NPU                | [QNN](qnn.md)                  | Compiles for Qualcomm's on-device NPU rather than requiring an external accelerator                  |
 | Rockchip NPU                           | [RKNN](rockchip-rknn.md)       | Widely used across affordable SBCs and embedded systems                                              |
-| Huawei Ascend NPU                      | [Ascend](ascend.md)            | Compiles a CANN `.om` model for the Ascend AI Core on Atlas boards and OrangePi AIPro                |
+| Huawei Ascend NPU                      | [Ascend](ascend.md)            | Compiles a CANN `.om` model for the Ascend AI Core on Atlas boards and Orange Pi AIpro               |
 | Google Coral Edge TPU                  | [Edge TPU](edge-tpu.md)        | Runs an INT8 LiteRT model on the Coral accelerator instead of a Hailo module                         |
 | Ambarella CVflow SoC                   | [Ambarella](ambarella.md)      | Compiles for Ambarella camera and embedded-vision SoCs                                               |
 | Raspberry Pi AI Camera                 | [Sony IMX500](sony-imx500.md)  | Runs the network in the camera sensor rather than through a host-attached Hailo accelerator          |
 | Mobile or embedded CPU/GPU             | [NCNN](ncnn.md)                | Provides a lightweight portable runtime when a dedicated supported NPU is unavailable                |
 | Portable cross-runtime deployment      | [ONNX](onnx.md)                | Preserves portability across runtimes; HailoRT cannot execute ONNX without first compiling it to HEF |
 
-Do not assume Hailo is faster or more power-efficient solely because it is an NPU. For new M.2 deployments, DeepX is the stronger candidate for higher YOLO performance and better performance per watt, while Axelera targets substantially higher multi-stream throughput. Rockchip is a popular lower-cost option across SBCs and embedded systems. Vendor TOPS and power figures are not directly comparable application benchmarks, so validate the same YOLO checkpoint, input size, accuracy, host, and complete video pipeline on the [candidate devices](https://www.ultralytics.com/blog/picking-the-right-edge-device-for-your-computer-vision-project) before purchasing hardware.
+Do not assume Hailo is faster or more power-efficient solely because it is an NPU. For new M.2 deployments, DEEPX is the stronger candidate for higher YOLO performance and better performance per watt, while Axelera targets substantially higher multi-stream throughput. Rockchip is a popular lower-cost option across SBCs and embedded systems. Vendor TOPS and power figures are not directly comparable application benchmarks, so validate the same YOLO checkpoint, input size, accuracy, host, and complete video pipeline on the [candidate devices](https://www.ultralytics.com/blog/picking-the-right-edge-device-for-your-computer-vision-project) before purchasing hardware.
 
 ## Optimize Hailo Computer Vision Performance
 

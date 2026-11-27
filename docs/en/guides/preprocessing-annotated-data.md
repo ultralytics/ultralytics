@@ -1,13 +1,13 @@
 ---
-title: Preprocessing Annotated CV Data
+title: Image Preprocessing for YOLO Training
 comments: true
-description: "Preprocess annotated computer vision data with YOLO26: resize, normalize, augment, and split datasets to boost training accuracy and reduce overfitting."
-keywords: data preprocessing, computer vision, image resizing, image normalization, data augmentation, train validation test split, data leakage, exploratory data analysis, YOLO26, Ultralytics
+description: "YOLO resizes images to imgsz (640 by default) and scales pixels to [0, 1] for you. Learn how to split an annotated dataset, audit its labels, and fix class imbalance."
+keywords: data preprocessing, image preprocessing, computer vision, image resizing, image normalization, data augmentation, train validation test split, data leakage, exploratory data analysis, dataset audit, class imbalance, oversampling, cls_pw, YOLO26, Ultralytics
 ---
 
 # Data Preprocessing Techniques for Annotated Computer Vision Data
 
-[Data preprocessing](https://www.ultralytics.com/glossary/data-preprocessing) turns raw, annotated images into the clean and consistent inputs a [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) model needs to train well. With [Ultralytics YOLO26](../models/yolo26.md), the core pixel operations — RGB conversion, scaling to `[0, 1]`, and resizing — run automatically inside the training pipeline, so the work that remains is splitting your dataset correctly, balancing classes, and choosing augmentations. This guide covers those essential techniques: resizing, normalization, dataset splitting, data augmentation, and exploratory data analysis (EDA).
+[Data preprocessing](https://www.ultralytics.com/glossary/data-preprocessing) turns raw, annotated images into the clean and consistent inputs a [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) model needs to train well. With [Ultralytics YOLO26](../models/yolo26.md), the core pixel operations — RGB conversion, scaling to `[0, 1]`, and resizing — run automatically inside the training pipeline, so the work that remains is splitting your dataset correctly, balancing classes, and choosing augmentations. This guide covers those essential techniques: resizing, normalization, dataset splitting, data augmentation, exploratory data analysis (EDA) with a runnable dataset audit, and fixing class imbalance.
 
 <p align="center">
   <br>
@@ -59,7 +59,7 @@ YOLO26 handles normalization automatically as part of its preprocessing pipeline
 Keep these points in mind when splitting:
 
 - **Maintain class distribution**: Ensure each class is represented proportionally across the training, validation, and test sets.
-- **Balance classes**: For imbalanced datasets, consider oversampling the minority class or under-sampling the majority class — within the training set only.
+- **Balance classes**: For imbalanced datasets, rebalance the training set only, never validation or test. See [Handling Class Imbalance](#handling-class-imbalance) for the order of fixes.
 
 !!! warning "Avoid data leakage"
 
@@ -127,6 +127,61 @@ EDA uses statistics and visualizations to reveal patterns and distributions in y
 
 Statistical EDA starts with basic metrics — mean, median, standard deviation, and range — computed over properties such as pixel-intensity distributions. These give a quick overview of your dataset's quality and surface irregularities early.
 
+### Audit Labels with a Script
+
+Counting labels catches the problems that hurt training most before you spend GPU time on them: classes with far fewer instances than the rest, classes that appear in validation but never in training, and byte-identical images that inflate counts or leak across splits. This script loads each split through the same `YOLODataset` class that training uses, so it reads a data YAML whose splits are folders, `.txt` image lists, or lists of either.
+
+!!! example "Audit a dataset before training"
+
+    ```python
+    import hashlib
+    from collections import Counter
+    from pathlib import Path
+
+    from ultralytics.data import YOLODataset
+    from ultralytics.data.utils import check_det_dataset
+
+    data = check_det_dataset("coco8.yaml")  # swap in your data YAML
+    counts, seen = {}, {}
+    for split in ("train", "val"):
+        dataset = YOLODataset(img_path=data[split], data=data, task="detect", augment=False)  # or segment, pose, obb
+        counts[split] = Counter()
+        for label in dataset.labels:
+            counts[split].update(label["cls"].flatten().astype(int).tolist())
+            digest = hashlib.md5(Path(label["im_file"]).read_bytes()).hexdigest()
+            if digest in seen:  # byte-identical image, within or across splits
+                print(f"duplicate image: {label['im_file']} == {seen[digest]}")
+            seen[digest] = label["im_file"]
+
+    train, val = counts["train"], counts["val"]
+    print(f"{'class':<14}{'train':>6}{'val':>6}")
+    for i, name in data["names"].items():
+        if train[i] or val[i]:
+            print(f"{name:<14}{train[i]:>6}{val[i]:>6}{'  <- val only' if not train[i] else ''}")
+    print(f"largest/smallest train class: {max(train.values()) / min(train.values()):.0f}x")
+    ```
+
+On [COCO8](../datasets/detect/coco8.md), an 8-image smoke-test set where these gaps are expected, the output shows five val-only classes and a 4x imbalance between train classes:
+
+```text
+class          train   val
+person             0    10  <- val only
+dog                0     1  <- val only
+horse              0     2  <- val only
+elephant           0     2  <- val only
+zebra              1     0
+giraffe            2     0
+umbrella           0     1  <- val only
+bowl               3     0
+orange             4     0
+broccoli           1     0
+potted plant       1     1
+vase               1     0
+largest/smallest train class: 4x
+```
+
+A `val only` class is scored during validation but has no training examples, so the model can't learn it from your data: move some of its images into training or collect more. A train class well below the per-class targets in [Handling Class Imbalance](#handling-class-imbalance), or a high largest-to-smallest ratio, means the classes are imbalanced. The [Dataset Quality Control lesson](https://academy.ultralytics.com/courses/dataset-readiness-for-yolo/dataset-quality-control) in Ultralytics Academy extends this audit with invalid class IDs, tiny boxes, and a model-assisted search for missing labels.
+
 ### Visual EDA Techniques
 
 Visualizations reveal patterns that summary statistics miss, such as class imbalance and outliers. Common tools include:
@@ -139,6 +194,16 @@ Visualizations reveal patterns that summary statistics miss, such as class imbal
 ### Ultralytics Platform for EDA
 
 For a no-code approach to EDA, upload your dataset to [Ultralytics Platform](https://platform.ultralytics.com). The dataset's [`Charts` tab](../platform/data/datasets.md#charts-tab) automatically generates key EDA visualizations: split distribution, top class counts, image width/height histograms, and 2D heatmaps of annotation positions and image dimensions. The `Images` tab lets you browse your data in grid, compact, or table views with annotation overlays, making it easy to spot mislabeled examples or unbalanced classes without writing any code.
+
+## Handling Class Imbalance
+
+Class imbalance means some classes have far fewer labeled instances than others, for example 8,000 forklifts and 700 pallets. The model then sees the rare class too seldom to learn it, so that class's AP and recall trail the common classes. Measure it with the [audit script](#audit-labels-with-a-script) or the Platform **Charts** tab, then confirm the effect after a first training run with the per-class rows of the [validation results](../modes/val.md).
+
+Fix it in this order:
+
+1. **Collect and label more of the rare class.** New, varied examples are the only fix that adds information. As a target, aim for at least 1,500 images and 10,000 labeled instances per class, per the [tips for best training results](../yolov5/tutorials/tips-for-best-training-results.md).
+2. **Oversample it in the training split only.** Point `train:` in your data YAML at a `.txt` file of image paths, one per line, and list the images that contain the rare class two or three times. YOLO keeps repeated entries, so each epoch sees those images more often, and augmentation makes each repeat look different. Never copy images into validation or test, and run the audit on the split before you add the repeats, since it reports them as duplicate images.
+3. **Weight the loss.** The `cls_pw` training argument weights the classification loss by inverse class frequency, so mistakes on rare classes cost more. See [how to train on an imbalanced dataset](../modes/train.md#how-do-i-train-a-model-on-an-imbalanced-dataset) for its values, formula, and starting points.
 
 ## Conclusion
 

@@ -1568,18 +1568,21 @@ class Exporter:
             assert self.args.opset <= 19, "RTDETR TensorFlow export requires opset<=19"
         self.args.simplify = True
         f_onnx = self.export_onnx()  # ensure ONNX is available
-        keras_model = onnx2saved_model(
-            f_onnx,
-            f,
-            quantize=self.args.quantize,
-            # built inline as a temporary so onnx2saved_model's `del images` frees it before the conversion phase
-            images=self._int8_calibration_images(prefix) if self.args.quantize == 8 and self.args.data else None,
-            disable_group_convolution=self.args.format == "edgetpu",
-            cuda=self.device.type == "cuda" and not rocm_is_available(),  # TensorFlow and onnxruntime-gpu are CUDA-only
-            prefix=prefix,
-        )
-        if self.args.format == "edgetpu":
-            Path(f_onnx).unlink()  # the tf_wrapper ONNX outputs normalized boxes, never leave it as <stem>.onnx
+        try:
+            keras_model = onnx2saved_model(
+                f_onnx,
+                f,
+                quantize=self.args.quantize,
+                # built inline as a temporary so onnx2saved_model's `del images` frees it before the conversion phase
+                images=self._int8_calibration_images(prefix) if self.args.quantize == 8 and self.args.data else None,
+                disable_group_convolution=self.args.format == "edgetpu",
+                # TensorFlow and onnxruntime-gpu are CUDA-only
+                cuda=self.device.type == "cuda" and not rocm_is_available(),
+                prefix=prefix,
+            )
+        finally:
+            if self.args.format == "edgetpu":
+                Path(f_onnx).unlink()  # the tf_wrapper ONNX outputs normalized boxes, never leave it as <stem>.onnx
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
         # Add TFLite metadata
         for file in f.rglob("*.tflite"):

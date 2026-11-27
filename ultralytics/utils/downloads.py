@@ -202,9 +202,9 @@ def unzip_file(
         top_level_dirs = {part for f in files for part in Path(f).parts[:1]}
 
         # Decide to unzip directly or unzip into a directory
-        unzip_as_dir = len(top_level_dirs) == 1  # (len(files) > 1 and not files[0].endswith("/"))
+        unzip_as_dir = len(top_level_dirs) == 1
         if unzip_as_dir:
-            # Zip has 1 top-level directory
+            # Zip has 1 top-level directory or file
             extract_path = path  # i.e. ../datasets
             path = Path(path) / next(iter(top_level_dirs))  # i.e. extract coco8/ dir to ../datasets/
         else:
@@ -229,7 +229,7 @@ def unzip_file(
                 continue
             zipObj.extract(f, extract_path)
 
-    return path  # return unzip dir
+    return path
 
 
 def check_disk_space(
@@ -310,7 +310,8 @@ def safe_download(
         progress (bool, optional): Whether to display a progress bar during the download.
 
     Returns:
-        (Path): The path to the downloaded file, or to the file or directory extracted from it.
+        (Path): The downloaded file, or the single top-level file or directory extracted from it, else the directory it
+            was extracted into.
 
     Raises:
         ConnectionError: If the download fails after all retries or the environment is offline.

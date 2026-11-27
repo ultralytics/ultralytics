@@ -122,7 +122,7 @@ class LoadStreams:
 
         if os.path.isfile(sources):
             with open(sources, encoding="utf-8") as f:
-                sources = f.read().rsplit()
+                sources = [s for s in map(str.strip, f) if s]  # one source per line, paths may contain spaces
             if not sources:
                 raise FileNotFoundError(f"No streams found in {f.name}. {FORMATS_HELP_MSG}")
         else:

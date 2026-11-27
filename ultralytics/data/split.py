@@ -77,6 +77,7 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
         f"Splitting {source_path} ({len(class_dirs)} classes) into {train_ratio:.0%} train, {1 - train_ratio:.0%} val..."
     )
     total_images = 0
+    expected = set()
 
     for class_dir in class_dirs:
         # Create class directories
@@ -95,6 +96,12 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
             (previous / relative).unlink(missing_ok=True)  # a changed ratio or image set reassigns this image
             (target / relative).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(img, target / relative)
+            expected.add(target / relative)
+
+    for split in (train_path, val_path):
+        for f in split.rglob("*.*"):
+            if f.is_file() and f.suffix[1:].lower() in IMG_FORMATS and f not in expected:
+                f.unlink()
 
     LOGGER.info(f"Split complete in {split_path} ({total_images} images) ✅")
     return split_path

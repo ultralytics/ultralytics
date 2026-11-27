@@ -168,9 +168,9 @@ def unzip_file(
 ) -> Path:
     """Unzip a *.zip file to the specified path, excluding specified files.
 
-    If the zipfile does not contain a single top-level directory, the function will create a new directory with the same
-    name as the zipfile (without the extension) to extract its contents. If a path is not provided, the function will
-    use the parent directory of the zipfile as the default path.
+    A zipfile with a single top-level directory or file is extracted directly into the path. Otherwise the function
+    creates a new directory with the same name as the zipfile (without the extension) to extract its contents. If a path
+    is not provided, the function will use the parent directory of the zipfile as the default path.
 
     Args:
         file (str | Path): The path to the zipfile to be extracted.
@@ -180,7 +180,7 @@ def unzip_file(
         progress (bool, optional): Whether to display a progress bar.
 
     Returns:
-        (Path): The path to the directory where the zipfile was extracted.
+        (Path): The extracted top-level directory or file, or the new directory holding several top-level entries.
 
     Raises:
         BadZipFile: If the provided file does not exist or is not a valid zipfile.
@@ -202,7 +202,7 @@ def unzip_file(
         top_level_dirs = {part for f in files for part in Path(f).parts[:1]}
 
         # Decide to unzip directly or unzip into a directory
-        unzip_as_dir = len(top_level_dirs) == 1 and any("/" in f for f in files)  # single top-level directory, not file
+        unzip_as_dir = len(top_level_dirs) == 1  # (len(files) > 1 and not files[0].endswith("/"))
         if unzip_as_dir:
             # Zip has 1 top-level directory
             extract_path = path  # i.e. ../datasets
@@ -310,7 +310,7 @@ def safe_download(
         progress (bool, optional): Whether to display a progress bar during the download.
 
     Returns:
-        (Path): The path to the downloaded file or extracted directory.
+        (Path): The path to the downloaded file, or to the file or directory extracted from it.
 
     Raises:
         ConnectionError: If the download fails after all retries or the environment is offline.

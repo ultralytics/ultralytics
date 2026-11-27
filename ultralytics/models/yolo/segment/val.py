@@ -49,6 +49,9 @@ class SegmentationValidator(DetectionValidator):
     def preprocess_targets(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Move segmentation targets to the device as float32.
 
+        Per-object masks are kept for scoring. With `overlap_mask` during training, `masks` becomes the loss's layout:
+        one map per image where j + 1 marks the image's j-th object and smaller objects cover larger ones.
+
         Args:
             batch (dict[str, Any]): Batch containing images and annotations.
 
@@ -57,14 +60,14 @@ class SegmentationValidator(DetectionValidator):
         """
         batch = super().preprocess_targets(batch)
         batch["masks"] = batch["masks"].float()
-        if self.training and self.args.overlap_mask:  # the loss reads one instance-index map per image, as in training
-            masks, idx = batch["masks"], batch["batch_idx"]
-            index = masks.new_zeros(len(batch["img"]), *masks.shape[1:])
-            for i, m in enumerate(index):
-                instances = masks[idx == i]
-                for j in instances.sum((1, 2)).argsort(descending=True):  # smaller objects drawn on top
-                    m[instances[j] > 0] = j + 1
-            batch.update(masks=index, instance_masks=masks)
+        if self.training and self.args.overlap_mask:
+            masks, idx = batch["masks"], batch["batch_idx"].long()
+            n = torch.bincount(idx, minlength=len(batch["img"]))
+            slots = masks.new_zeros(len(n), int(n.max()) + 1, *masks.shape[1:])  # slot j + 1 holds object j
+            area = masks.sum((1, 2), keepdim=True).clamp(min=1)
+            slots[idx, torch.arange(len(idx), device=idx.device) - (n.cumsum(0) - n)[idx] + 1] = masks / area
+            value, index = slots.max(1)  # the smallest covering object wins
+            batch.update(masks=(index * (value > 0)).float(), instance_masks=masks)
         return batch
 
     def init_metrics(self, model: torch.nn.Module) -> None:
@@ -138,7 +141,6 @@ class SegmentationValidator(DetectionValidator):
 
         Notes:
             - This method computes IoU between predicted and ground truth masks.
-            - Overlapping masks are handled based on the overlap_mask argument setting.
         """
         tp = super()._process_batch(preds, batch)
         gt_cls = batch["cls"]

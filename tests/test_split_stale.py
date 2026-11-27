@@ -4,6 +4,7 @@ from ultralytics.data.split import split_classify_dataset
 
 
 def test_split_classify_dataset_removes_stale_images(tmp_path):
+    """Re-splitting after deleting a source image leaves no stale copies in the split."""
     source = tmp_path / "dataset"
     class_dir = source / "cat"
     class_dir.mkdir(parents=True)

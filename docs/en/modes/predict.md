@@ -925,6 +925,36 @@ The `plot()` method supports various arguments to customize the output:
 | `color_mode` | `str`                        | Specify the color mode, e.g., 'instance' or 'class'.                       | `'class'`         |
 | `txt_color`  | `tuple[int, int, int]`       | BGR text color for classification labels.                                  | `(255, 255, 255)` |
 
+### Custom Class Colors
+
+`plot()` has no `colors` argument: with the default `color_mode='class'`, each class's color comes from the model. To choose them, add a `colors` list of quoted `"#rrggbb"` strings, indexed by class id, to your [dataset YAML](../datasets/detect/index.md#ultralytics-yolo-format) before training. The trained model saves the list, so `plot()`, `show=True` and `save=True` draw that class's boxes, oriented boxes, masks and labels in it, and exported models keep it. Classes beyond the end of the list use the default palette, and a list with any malformed entry is ignored with a warning. On [Ultralytics Platform](../platform/data/annotation.md#class-colors), the colors you pick on a dataset's **Classes** tab reach models trained on it the same way.
+
+!!! example "Class colors from the dataset YAML"
+
+    === "dataset.yaml"
+
+        ```yaml
+        path: datasets/ppe
+        train: images/train
+        val: images/val
+        names:
+          0: helmet
+          1: no-helmet
+        colors: ["#00c853", "#ff1744"] # helmet green, no-helmet red
+        ```
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
+        model.train(data="dataset.yaml", epochs=100)  # the trained model stores the colors
+
+        results = model("site.jpg")
+        results[0].plot()  # helmets green, missing helmets red
+        ```
+
 ## Thread-Safe Inference
 
 Ensuring [thread safety during inference](../guides/yolo-thread-safe-inference.md) is crucial when you are running multiple YOLO models in parallel across different threads. Thread-safe inference guarantees that each thread's predictions are isolated and do not interfere with one another, avoiding race conditions and ensuring consistent and reliable outputs.

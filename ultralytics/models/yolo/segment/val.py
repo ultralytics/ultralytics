@@ -49,8 +49,9 @@ class SegmentationValidator(DetectionValidator):
     def preprocess_targets(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Move segmentation targets to the device as float32.
 
-        Per-object masks are kept for scoring. With `overlap_mask` during training, `masks` becomes the loss's layout:
-        one map per image where j + 1 marks the image's j-th object and smaller objects cover larger ones.
+        With `overlap_mask` during training, `masks` becomes the loss's layout (one map per image where j + 1 marks the
+        image's j-th object and smaller objects cover larger ones) and the per-object masks move to `instance_masks`
+        for scoring.
 
         Args:
             batch (dict[str, Any]): Batch containing images and annotations.
@@ -66,8 +67,7 @@ class SegmentationValidator(DetectionValidator):
             slots = masks.new_zeros(len(n), int(n.max()) + 1, *masks.shape[1:])  # slot j + 1 holds object j
             area = masks.sum((1, 2), keepdim=True).clamp(min=1)
             slots[idx, torch.arange(len(idx), device=idx.device) - (n.cumsum(0) - n)[idx] + 1] = masks / area
-            value, index = slots.max(1)  # the smallest covering object wins
-            batch.update(masks=(index * (value > 0)).float(), instance_masks=masks)
+            batch.update(masks=slots.argmax(1).float(), instance_masks=masks)  # smallest covering object, 0 if none
         return batch
 
     def init_metrics(self, model: torch.nn.Module) -> None:

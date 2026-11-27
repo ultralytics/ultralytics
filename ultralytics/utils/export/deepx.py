@@ -13,6 +13,7 @@ def onnx2deepx(
     onnx_file: str | Path,
     imgsz: tuple[int, int],
     dataset,
+    channels: int = 3,
     metadata: dict | None = None,
     optimize: bool = False,
     prefix: str = "",
@@ -22,6 +23,7 @@ def onnx2deepx(
     Args:
         onnx_file (str | Path): Input ONNX model path.
         imgsz (tuple[int, int]): Export image size as ``(height, width)``.
+        channels (int): Input channel count, matching the traced ONNX graph.
         dataset (DataLoader): Calibration dataloader used to build the DEEPX config.
         metadata (dict | None, optional): Optional metadata to save as YAML. Defaults to None.
         optimize (bool, optional): If True, enables higher compiler optimization which reduces inference latency and
@@ -50,7 +52,7 @@ def onnx2deepx(
     config_path = export_path / "config.json"
 
     config = {
-        "inputs": {"images": [1, 3, imgsz[0], imgsz[1]]},
+        "inputs": {"images": [1, channels, imgsz[0], imgsz[1]]},
         "calibration_num": 100,  # number of steps used during calibration
         "calibration_method": "ema",  # calibration method used during quantization
         "default_loader": {
@@ -60,7 +62,7 @@ def onnx2deepx(
             "preprocessings": [
                 {"resize": {"mode": "pad", "size": imgsz[0], "pad_location": "edge", "pad_value": [114, 114, 114]}},
                 {"div": {"x": 255.0}},
-                {"convertColor": {"form": "BGR2RGB"}},
+                {"convertColor": {"form": "BGR2GRAY" if channels == 1 else "BGR2RGB"}},
                 {"transpose": {"axis": [2, 0, 1]}},
                 {"expandDim": {"axis": 0}},
             ],

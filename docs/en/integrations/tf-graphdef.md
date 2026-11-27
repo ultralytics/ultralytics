@@ -162,7 +162,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ## Deploying Exported YOLO26 TF GraphDef Models
 
-Once you've exported your YOLO26 model to the TF GraphDef format, the next step is deployment. The primary and recommended first step for running a TF GraphDef model is to use the `YOLO("model.pb")` method, as previously shown in the usage code snippet.
+Once you've exported your YOLO26 model to the TF GraphDef format, the next step is deployment. The primary and recommended first step for running a TF GraphDef model is to use the `YOLO("model.pb")` method, as previously shown in the usage code snippet. Ultralytics runs it with TensorFlow on the CPU and hides the GPUs from TensorFlow.
 
 For more information on deploying your TF GraphDef models, take a look at the following resources:
 

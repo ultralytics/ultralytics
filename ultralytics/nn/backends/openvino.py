@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import ARM64, LINUX, LOGGER, WINDOWS
+from ultralytics.utils import LINUX, LOGGER, WINDOWS
 from ultralytics.utils.checks import check_requirements
 
 from .base import BaseBackend
@@ -76,9 +76,6 @@ class OpenVINOBackend(BaseBackend):
         # Force sync inference because AsyncInferQueue can hang indefinitely on Intel and AMD CPUs, see
         # https://github.com/ultralytics/ultralytics/issues/25923.
         config = {"PERFORMANCE_HINT": "LATENCY"}
-        if LINUX and ARM64 and device_name == "CPU":
-            config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY
-            config["INFERENCE_PRECISION_HINT"] = ov.Type.f32
         if device_name.startswith("NPU"):  # NPU is wrong at batch>1, so compile batch 1 and AutoBackend splits batches
             shape = list(ov_model.input().partial_shape)
             if self.metadata.get("dynamic"):  # NPU needs static shapes, so pin dynamic exports to imgsz

@@ -19,7 +19,7 @@ keywords: Ultralytics, YOLO26, distance calculation, computer vision, object tra
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to estimate distance between detected objects with Ultralytics YOLO in Pixels 🚀
+  <strong>Watch:</strong> How to Estimate Distance between Objects with Ultralytics YOLO26 in Pixel Space | Python Tutorial 🚀
 </p>
 
 ## Visuals

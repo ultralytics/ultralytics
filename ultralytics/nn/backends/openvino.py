@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import ARM64, LINUX, LOGGER, WINDOWS
+from ultralytics.utils import ARM64, LINUX, LOGGER, WINDOWS, cpu_threads
 from ultralytics.utils.checks import check_requirements
 
 from .base import BaseBackend
@@ -76,6 +76,19 @@ class OpenVINOBackend(BaseBackend):
         # Force sync inference because AsyncInferQueue can hang indefinitely on Intel and AMD CPUs, see
         # https://github.com/ultralytics/ultralytics/issues/25923.
         config = {"PERFORMANCE_HINT": "LATENCY"}
+        # Linux CPU plugin sizes its pool to host physical cores, ignoring cgroup v2 CPU quotas (docker --cpus,
+        # k8s cpu limits). Ask the plugin for its own NUMA-aware pool with a tiny compile and cap it only when the
+        # quota is tighter, preserving its choice otherwise: forcing the host count regresses multi-socket hosts
+        if LINUX and device_name == "CPU":
+            import psutil  # scoped as slow import
+
+            threads = cpu_threads(physical := psutil.cpu_count(logical=False) or os.cpu_count())
+            if threads < physical:  # quota or affinity restricted: probe the plugin's own pool choice first
+                p = ov.opset13.parameter([1, 1], dtype=ov.Type.f32)
+                tiny = ov.Model([ov.opset13.result(p)], [p])
+                native = core.compile_model(tiny, device_name, config).get_property("INFERENCE_NUM_THREADS")
+                if threads < native:
+                    config["INFERENCE_NUM_THREADS"] = threads
         if LINUX and ARM64 and device_name == "CPU":
             config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY
             config["INFERENCE_PRECISION_HINT"] = ov.Type.f32

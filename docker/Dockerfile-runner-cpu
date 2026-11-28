@@ -9,7 +9,7 @@ COPY --from=node:24-slim /usr/local/bin/node /usr/local/bin/node
 COPY --from=node:24-slim /usr/local/lib/node_modules/npm/ /usr/local/lib/node_modules/npm/
 
 # Set additional environment variables for runner (no "v" on the version)
-ARG RUNNER_VERSION=2.338.0
+ARG RUNNER_VERSION=2.338.2
 ENV RUNNER_ALLOW_RUNASROOT=1 \
     DEBIAN_FRONTEND=noninteractive
 
@@ -25,6 +25,9 @@ RUN FILENAME=actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz && \
     rm "$FILENAME" && \
     # Install runner dependencies; OpenSSH enables SSH jobs; rsync excludes untrusted Git metadata during sync \
     uv pip install --system --no-cache pytest-cov && \
+    # gh from GitHub's apt repository: Debian's 2.46 fails `gh pr view` on the removed Projects (classic) API \
+    curl -fsSLo /usr/share/keyrings/githubcli-archive-keyring.gpg https://cli.github.com/packages/githubcli-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list && \
     ./bin/installdependencies.sh && \
     apt-get install -y --no-install-recommends gh gpg gpg-agent jq libicu-dev openssh-client rsync sudo \
     # libgl1: libGL and libxcb for the GUI opencv-python CI installs from pyproject.toml (import cv2 fails without) \

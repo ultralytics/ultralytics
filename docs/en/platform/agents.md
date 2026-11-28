@@ -12,14 +12,14 @@ keywords: Ultralytics Platform, Agents, workflows, YOLO26, VLM, confidence filte
 
 Open **Agents** in the sidebar or go to [platform.ultralytics.com/agents](https://platform.ultralytics.com/agents). Agents appears in the sidebar for every signed-in user, in personal and team workspaces, with no Early access setting to enable.
 
-![Ultralytics Platform Agents canvas showing an image connected to YOLO, a condition, a vision-language model, and an output block](https://cdn.ul.run/i/e551fa972ff3eb23ef89a46fa10afc9e.avif)
+![Ultralytics Platform Agents canvas showing an image connected to YOLO, a condition, a vision-language model, and an output block](https://cdn.ul.run/i/eff8d5e1180dfc7acbd731e9b3f70f05.avif)<!-- screenshot -->
 
 ## Run Your First Workflow
 
 1. Open **Agents**, click **Add block > Templates**, and choose **YOLO → VLM Monitor**.
-2. Select the **Input image** block, choose an uploaded dataset, and select an image containing a person. Use an image of up to 4 megapixels for the shared trial.
+2. Select the **Input image** block and drop in an image containing a person, or choose an uploaded dataset and select one. Use an image of up to 4 megapixels for the shared trial.
 3. Keep the default [YOLO26 nano](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n) model. The condition passes when YOLO detects at least one person.
-4. Select **Describe the scene**, choose a vision-language model, and enter a prompt. [Add the matching provider key](account/api-keys.md#provider-keys-for-agents-and-annotation) in **Settings > API Keys** if you have not already done so. In a team workspace, ask the workspace owner to add or replace the provider key.
+4. Select **Describe the scene**. Its default model, **Gemini 3.5 Flash-Lite**, reads the image and returns text, and a free-tier Gemini API key can run it. Choose another vision-language model if you prefer, and keep or edit the prompt. [Add the matching provider key](account/api-keys.md#provider-keys-for-agents-and-annotation) in **Settings > API Keys** if you have not already done so. In a team workspace, ask the workspace owner to add or replace the provider key.
 5. Keep **Shared trial · 60 seconds** selected for a small run, then click **Run**.
 6. Watch the blocks update and inspect the **Output**. If no person is detected, the condition finishes without running the description branch.
 
@@ -35,7 +35,7 @@ You can run a draft before saving it. Use **Save workflow** to name and save a w
 
 Templates are editable starting points. Select the images, deployment, destination dataset, and integrations for your workspace before running them. These workflows run when you click **Run**; the Monitor template analyzes the selected input image.
 
-![Ultralytics Platform Agents template picker with YOLO to VLM Monitor, Collect Uncertain Detections, and Capture and Alert](https://cdn.ul.run/i/a460b0cc6ba7cd54e8c5c92f1a1a4a15.avif)
+![Ultralytics Platform Agents template picker with YOLO to VLM Monitor, Collect Uncertain Detections, and Capture and Alert](https://cdn.ul.run/i/330f69df49ec82fdedf40520e6d591a3.avif)<!-- screenshot -->
 
 ## Choose Where to Run
 

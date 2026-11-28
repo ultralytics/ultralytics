@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Export Ultralytics YOLO26 models to ONNX, TensorRT, CoreML, OpenVINO, LiteRT, and more, with export arguments, INT8/FP16 quantization, and QAT.
-keywords: YOLO26, Model Export, ONNX, TensorRT, CoreML, OpenVINO, Ultralytics, quantization, INT8, Inference, Deployment
+description: Export Ultralytics YOLO26 models to ONNX, TensorRT, CoreML, OpenVINO, LiteRT, and more, with export arguments, INT8/FP16 quantization, QAT, and where exported files are saved.
+keywords: YOLO26, Model Export, export path, ONNX, TensorRT, CoreML, OpenVINO, Ultralytics, quantization, INT8, Inference, Deployment
 ---
 
 # Model Export with Ultralytics YOLO
@@ -79,6 +79,35 @@ Available YOLO26 export formats are in the table below. You can export to any fo
     ```bash
     export YOLO_AUTOINSTALL=False
     ```
+
+## Where Exported Models Are Saved
+
+Export saves the model next to the weights it starts from, under the same name, with the file or folder shown in the **Model** column above; some formats add a precision suffix or a subfolder. For example, `runs/detect/train/weights/best.pt` exports to `runs/detect/train/weights/best.onnx` or `best_openvino_model/` in the same folder. A bare name such as `yolo26n.pt` usually resolves to the current working directory, where it is downloaded if missing (see [how bare model names are found](../usage/settings.md#settings-reference)), so its exports land there too. A model built from a YAML file such as `yolo26n.yaml` also exports to the current working directory. The export log prints the exact path (`saved as '...'`), and `model.export()` returns it.
+
+Export has no argument for an output folder. To save elsewhere, move the exported file after export, or copy the weights into the target folder and export from there:
+
+!!! example
+
+    === "Python"
+
+        ```python
+        import shutil
+        from pathlib import Path
+
+        from ultralytics import YOLO
+
+        model = YOLO("path/to/best.pt")
+        path = model.export(format="onnx")  # returns 'path/to/best.onnx'
+        Path("deploy").mkdir(exist_ok=True)
+        shutil.move(path, "deploy/best.onnx")
+        ```
+
+    === "CLI"
+
+        ```bash
+        mkdir -p deploy && cp path/to/best.pt deploy/
+        yolo export model=deploy/best.pt format=onnx # saves deploy/best.onnx
+        ```
 
 ## Quantization Options
 

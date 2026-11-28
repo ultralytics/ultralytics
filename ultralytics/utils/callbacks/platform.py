@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import json
 import os
 import platform
 import re
@@ -72,6 +73,42 @@ def _validation_payload(image_metrics, sample_limit=5_000, extremes_limit=100):
         "rows": rows(sample),
         "extremes": {"worst": rows(ranked[:extremes_limit]), "best": rows(reversed(ranked[-extremes_limit:]))},
     }
+
+
+def _confusion_payload(confusion_matrix, conf, budget):
+    """Return confusion matrix cells with example images in at most `budget` JSON bytes, or its empty frame if smaller.
+
+    Counts are budgeted before examples. Cells are [predicted, true, objects, images, examples], each example [image
+    index, boxes]. Correct and false-detection cells carry at most their top 10 images; a confused or missed cell with
+    fewer examples than images was cut. Cells go confused, missed, false-detection, then correct, largest first, each
+    with its images by confidence (missed: by box area).
+    """
+    nc = confusion_matrix.nc
+
+    def rank(item):
+        (p, t), (objects, _, _) = item
+        return (3 if p == t else 1 if p == nc else 2 if t == nc else 0), -objects
+
+    ranked = sorted(confusion_matrix.cells.items(), key=rank)
+    cells, size = [], len(json.dumps({"conf": conf, "images": [], "cells": []}))
+    for (p, t), (objects, count, _) in ranked:
+        cost = len(json.dumps([p, t, objects, count, []])) + 2
+        if size + cost > budget:
+            break
+        size += cost
+        cells.append([p, t, objects, count, []])
+    index = {}  # image id -> its position in "images", in insertion order
+    for cell, (_, (_, _, examples)) in zip(cells, ranked):
+        for _, name, boxes in sorted(examples, reverse=True):
+            image = Path(name).stem.split("_", 1)[0]
+            i = index.get(image, len(index))
+            cost = len(json.dumps([i, boxes])) + 2 + (len(json.dumps(image)) + 2 if i == len(index) else 0)
+            if size + cost > budget:
+                break  # the cell keeps its top images; later cells may still fit theirs
+            size += cost
+            index[image] = i
+            cell[4].append([i, boxes])
+    return {"conf": conf, "images": list(index), "cells": cells}
 
 
 def _sanitize_json_value(value):
@@ -298,6 +335,7 @@ def _get_system_metrics(trainer):
 def on_pretrain_routine_start(trainer):
     """Initialize Platform logging at training start, continuing the recorded Platform model when resuming."""
     global _api_key
+    _api_key = None  # kept only while Platform tracks this run, which the final validation records cells for
     if TESTS_RUNNING or not trainer.args.project:
         return
     _api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
@@ -307,6 +345,7 @@ def on_pretrain_routine_start(trainer):
         LOGGER.warning(
             f"{PREFIX}Platform integration requires Python 3.11 or newer. Training will continue without tracking."
         )
+        _api_key = None
         return
 
     project, name = _get_project_name(trainer)
@@ -382,7 +421,7 @@ def on_pretrain_routine_start(trainer):
         _handle_control_response(trainer, ctx, response)
     else:
         LOGGER.warning(f"{PREFIX}Training will not be tracked on Platform")
-        trainer.platform = None  # Disable further callbacks
+        trainer.platform = _api_key = None  # Disable further callbacks and the final validation's cells
 
 
 def on_pretrain_routine_end(trainer):
@@ -545,26 +584,25 @@ def on_train_end(trainer):
 
     image_metrics = trainer.validator.metrics.box.image_metrics if trainer.args.task == "detect" else {}
     validation = _validation_payload(image_metrics)
-    _send(
-        "training_complete",
-        {
-            "results": {
-                "metrics": {**trainer.metrics, "fitness": trainer.fitness},
-                "bestEpoch": best_epoch,
-                "bestFitness": trainer.best_fitness,
-                **({"calibration": c} if (c := getattr(trainer, "depth_calibration", None)) else {}),
-                **({"validation": validation} if validation["rows"] else {}),
-                **(artifact or {}),
-            },
-            "classNames": class_names,
-            "plots": plots,
-            "runId": ctx["run_id"],
+    data = {
+        "results": {
+            "metrics": {**trainer.metrics, "fitness": trainer.fitness},
+            "bestEpoch": best_epoch,
+            "bestFitness": trainer.best_fitness,
+            **({"calibration": c} if (c := getattr(trainer, "depth_calibration", None)) else {}),
+            **({"validation": validation} if validation["rows"] else {}),
+            **(artifact or {}),
         },
-        project,
-        name,
-        ctx["model_id"],
-        retry=4,  # Critical, more retries
-    )
+        "classNames": class_names,
+        "plots": plots,
+        "runId": ctx["run_id"],
+    }
+    confusion_matrix = trainer.validator.confusion_matrix
+    if getattr(confusion_matrix, "cells", None):
+        room = 4_000_000 - len(json.dumps(_sanitize_json_value(data)))  # fill up to 4 of the 4.5 MB request limit
+        if room > 0:
+            data["results"]["confusion"] = _confusion_payload(confusion_matrix, trainer.validator.args.conf, room)
+    _send("training_complete", data, project, name, ctx["model_id"], retry=4)  # Critical, more retries
     if ctx.get("model_url"):
         LOGGER.info(f"{PREFIX}View results at {ctx['model_url']}")
 

@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import heapq
 import math
 import warnings
 from collections import defaultdict
@@ -388,6 +389,8 @@ class ConfusionMatrix(DataExportMixin):
         nc (int): The number of classes.
         names (dict[int, str]): The names of the classes, used as labels on the plot.
         matches (dict | None): Contains the indices of ground truths and predictions categorized into TP, FP and FN.
+        cells (dict | None): [objects, images, examples] per (predicted, true) cell. Each example is (score, image file,
+            boxes) with the image's boxes in that cell as normalized xyxy: prediction and conf, then any matched truth.
     """
 
     def __init__(self, names: dict[int, str] | None = None, task: str = "detect", save_matches: bool = False):
@@ -408,6 +411,7 @@ class ConfusionMatrix(DataExportMixin):
         )
         self.names = names  # name of classes
         self.matches = {} if save_matches else None
+        self.cells = None  # set to {} to record them
 
     def _append_matches(self, mtype: str, batch: dict[str, Any], idx: int) -> None:
         """Append the matches to TP, FP, FN or GT list for the last batch.
@@ -433,6 +437,58 @@ class ConfusionMatrix(DataExportMixin):
             elif k == "masks":
                 # NOTE: masks.max() > 1.0 means overlap_mask=True with (1, H, W) shape
                 self.matches[mtype][k] += [v[0] == idx + 1] if v.max() > 1.0 else [v[idx]]
+
+    def _save_cells(
+        self, detections: dict[str, torch.Tensor], batch: dict[str, Any], hits: dict[tuple[int, int], list]
+    ) -> None:
+        """Add the image to every cell it has boxes in, ranking boxes by confidence and missed boxes by area.
+
+        Args:
+            detections (dict[str, torch.Tensor]): Detections above the confidence threshold.
+            batch (dict[str, Any]): Ground truth with 'im_file', 'ori_shape', 'imgsz' and 'ratio_pad' keys.
+            hits (dict[tuple[int, int], list]): (detection, ground truth) index pairs per (predicted, true) cell, -1 for
+                none.
+        """
+        from .ops import scale_boxes
+
+        h, w = batch["ori_shape"]
+
+        def normalize(boxes):
+            boxes = boxes.clone().float()  # fp32, as fp16 rounds a wide image's edge past its width
+            boxes = scale_boxes(batch["imgsz"], boxes, (h, w), ratio_pad=batch["ratio_pad"])
+            return (boxes.cpu().numpy() / [w, h, w, h]).round(4)
+
+        conf = detections["conf"].cpu().numpy().astype(float)
+        pred = np.column_stack([normalize(detections["bboxes"]), conf.round(3)]).tolist()
+        gt, conf = normalize(batch["bboxes"]).tolist(), conf.tolist()  # rank by the unrounded confidence
+
+        def item(d, g):
+            if d < 0:  # a missed ground truth, ranked by area
+                x1, y1, x2, y2 = gt[g]
+                return (x2 - x1) * (y2 - y1), gt[g]
+            return conf[d], (pred[d] + gt[g] if g >= 0 else pred[d])
+
+        for cell, pairs in hits.items():
+            items = sorted((item(d, g) for d, g in pairs), key=lambda x: -x[0])
+            self._add_cell(cell, len(items), 1, [(items[0][0], batch["im_file"], [box for _, box in items])])
+
+    def _add_cell(self, cell: tuple[int, int], objects: int, images: int, examples: list[tuple]) -> None:
+        """Add counts and examples to a cell, keeping the 10 top-scoring images of a correct or false-detection cell.
+
+        Args:
+            cell (tuple[int, int]): Predicted and true class index, `nc` for background.
+            objects (int): Number of objects to add.
+            images (int): Number of images to add.
+            examples (list[tuple]): (score, image file, boxes) tuples to add.
+        """
+        counts = self.cells.setdefault(cell, [0, 0, []])
+        counts[0] += objects
+        counts[1] += images
+        if cell[0] != cell[1] and cell[1] < self.nc:  # confused or missed: every image
+            counts[2].extend(examples)
+        else:  # min-heap, so a weaker image is dropped without sorting
+            for example in examples:
+                (heapq.heappush if len(counts[2]) < 10 else heapq.heappushpop)(counts[2], example)
 
     def process_cls_preds(self, preds: list[torch.Tensor], targets: list[torch.Tensor]) -> None:
         """Update confusion matrix for classification task.
@@ -460,7 +516,8 @@ class ConfusionMatrix(DataExportMixin):
                 information. Should contain 'cls', 'conf', and 'bboxes' keys, where 'bboxes' can be Array[N, 4] for
                 regular boxes or Array[N, 5] for OBB with angle.
             batch (dict[str, Any]): Batch dictionary containing ground truth data with 'bboxes' (Array[M, 4]| Array[M,
-                5]) and 'cls' (Array[M]) keys, where M is the number of ground truth objects.
+                5]) and 'cls' (Array[M]) keys, where M is the number of ground truth objects, plus 'im_file',
+                'ori_shape', 'imgsz' and 'ratio_pad' when `cells` is recorded.
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth, the same criterion as
                 mAP50. This is a matching threshold, not the NMS `iou` argument.
@@ -475,42 +532,30 @@ class ConfusionMatrix(DataExportMixin):
             self.matches = {k: defaultdict(list) for k in ("TP", "FP", "FN", "GT")}
             for i in range(gt_cls.shape[0]):
                 self._append_matches("GT", batch, i)  # store GT
-        is_obb = gt_bboxes.shape[1] == 5  # check if boxes contains angle for OBB
-        no_pred = detections["cls"].shape[0] == 0
-        if gt_cls.shape[0] == 0:  # Check if labels is empty
-            if not no_pred:
-                detections = {k: detections[k][detections["conf"] > conf] for k in detections}
-                detection_classes = detections["cls"].int().tolist()
-                for i, dc in enumerate(detection_classes):
-                    self.matrix[dc, self.nc] += 1  # FP
-                    self._append_matches("FP", detections, i)
-            return
-        if no_pred:
-            gt_classes = gt_cls.int().tolist()
-            for i, gc in enumerate(gt_classes):
-                self.matrix[self.nc, gc] += 1  # FN
-                self._append_matches("FN", batch, i)
-            return
-
         detections = {k: detections[k][detections["conf"] > conf] for k in detections}
         gt_classes = gt_cls.int().tolist()
         detection_classes = detections["cls"].int().tolist()
-        bboxes = detections["bboxes"]
-        iou = batch_probiou(gt_bboxes, bboxes) if is_obb else box_iou(gt_bboxes, bboxes)
-
-        iou = iou.cpu().numpy()
         gt_match = np.full(len(gt_classes), -1)
-        candidates = np.flatnonzero((iou > iou_thres).any(0))
-        for det_idx in candidates[np.argsort(-detections["conf"].cpu().numpy()[candidates], kind="stable")]:
-            gt_idx = iou[:, det_idx].argmax()
-            if iou[gt_idx, det_idx] > iou_thres:
-                gt_match[gt_idx] = det_idx
-                iou[gt_idx] = 0
+        if gt_classes and detection_classes:
+            is_obb = gt_bboxes.shape[1] == 5  # check if boxes contains angle for OBB
+            bboxes = detections["bboxes"]
+            iou = batch_probiou(gt_bboxes, bboxes) if is_obb else box_iou(gt_bboxes, bboxes)
+
+            iou = iou.cpu().numpy()
+            candidates = np.flatnonzero((iou > iou_thres).any(0))
+            for det_idx in candidates[np.argsort(-detections["conf"].cpu().numpy()[candidates], kind="stable")]:
+                gt_idx = iou[:, det_idx].argmax()
+                if iou[gt_idx, det_idx] > iou_thres:
+                    gt_match[gt_idx] = det_idx
+                    iou[gt_idx] = 0
         matched_det = set(gt_match[gt_match >= 0].tolist())
+        hits = None if self.cells is None else defaultdict(list)  # (detection, truth) pairs per cell, -1 for none
         for i, gc in enumerate(gt_classes):
             if (di := gt_match[i].item()) >= 0:
                 dc = detection_classes[di]
                 self.matrix[dc, gc] += 1  # TP if class is correct else both an FP and an FN
+                if hits is not None:
+                    hits[dc, gc].append((di, i))
                 if dc == gc:
                     self._append_matches("TP", detections, di)
                 else:
@@ -518,12 +563,18 @@ class ConfusionMatrix(DataExportMixin):
                     self._append_matches("FN", batch, i)
             else:
                 self.matrix[self.nc, gc] += 1  # FN
+                if hits is not None:
+                    hits[self.nc, gc].append((-1, i))
                 self._append_matches("FN", batch, i)
 
         for i, dc in enumerate(detection_classes):
             if i not in matched_det:
                 self.matrix[dc, self.nc] += 1  # FP
+                if hits is not None:
+                    hits[dc, self.nc].append((i, -1))
                 self._append_matches("FP", detections, i)
+        if hits:
+            self._save_cells(detections, batch, hits)
 
     def tp_fp(self) -> tuple[np.ndarray, np.ndarray]:
         """Return true positives and false positives.

@@ -61,7 +61,7 @@ from .utils import (
 # 1.0.12: Accept UTF-8 byte-order marks in labels (since removed, version kept to avoid cache rescans).
 # 1.0.11: Reject negative box dimensions.
 # 1.0.10: EXIF-rotated image shapes match the decoded image.
-DATASET_CACHE_VERSION = "1.0.13"
+DATASET_CACHE_VERSION = "1.0.14"  # segments are now nested per instance when the segment task groups rows
 
 
 class YOLODataset(BaseDataset):
@@ -187,7 +187,8 @@ class YOLODataset(BaseDataset):
         """
         # add_polygon_background() class is not a label class, so segment and semantic share one cache
         nc = self.data.get("bg_class_idx") or len(self.data["names"])
-        scan_args = (self.use_keypoints, nc, self.data.get("kpt_shape"), self.single_cls)
+        # use_segments: a cache scanned for segments must not be reused for boxes, and vice versa
+        scan_args = (self.use_keypoints, self.use_segments, nc, self.data.get("kpt_shape"), self.single_cls)
         return get_hash(self.label_files + self.im_files + [str(scan_args)])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
@@ -220,6 +221,7 @@ class YOLODataset(BaseDataset):
             repeat(nkpt),
             repeat(ndim),
             repeat(self.single_cls),
+            repeat(self.use_segments),  # multipart: group segment rows by instance id (segment task only)
         )
 
     def result_to_label(self, result: list) -> tuple[dict | None, int, int, int, int, str]:
@@ -435,6 +437,17 @@ class YOLODataset(BaseDataset):
 
         # NOTE: do NOT resample oriented boxes
         segment_resamples = 100 if self.use_obb else 1000
+        # Multipart instances (segment task with grouped rows): label["segments"] is a list of per-instance
+        # contour lists. Flatten it to one contour per row and remember which instance each contour
+        # belongs to; resampling stays per contour, exactly as today.
+        segments_owner = None
+        if len(segments) and isinstance(segments[0], list):
+            segments_owner = (
+                np.concatenate([np.full(len(g), i, dtype=np.int64) for i, g in enumerate(segments)])
+                if any(len(g) for g in segments)
+                else np.zeros(0, dtype=np.int64)
+            )
+            segments = [contour for group in segments for contour in group]
         if len(segments) > 0 and (self.use_segments or self.format_class is not SemanticFormat):
             # make sure segments interpolate correctly if original length is greater than segment_resamples
             max_len = max(len(s) for s in segments)
@@ -443,7 +456,10 @@ class YOLODataset(BaseDataset):
             segments = np.stack(resample_segments(segments, n=segment_resamples), axis=0)
         else:
             segments = np.zeros((0, segment_resamples, 2), dtype=np.float32)
-        instances = Instances(bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized)
+            segments_owner = np.zeros(0, dtype=np.int64)
+        instances = Instances(
+            bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized, segments_owner=segments_owner
+        )
         if "tile" in label:
             instances.denormalize(w, h)
             keep = instances.crop(label["tile"], preserve_obb=self.use_obb)

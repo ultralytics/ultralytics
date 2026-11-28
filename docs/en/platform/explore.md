@@ -57,12 +57,12 @@ easy to bookmark or share.
 
 ![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.ul.run/i/105a2c60370c941f1f09cff1e0f576d6.avif)<!-- screenshot -->
 
-| Tab          | Matched Fields                                                                                           |
-| ------------ | -------------------------------------------------------------------------------------------------------- |
-| **Datasets** | Name, description, owner username, tags, and class names                                                 |
-| **Images**   | What the image shows                                                                                     |
-| **Projects** | Name, description, owner username, and tags                                                              |
-| **Models**   | Model name; the project's name, description, owner username, and tags; and what its training images show |
+| Tab          | Matched Fields                                                                                                      |
+| ------------ | ------------------------------------------------------------------------------------------------------------------- |
+| **Datasets** | Name, description, owner username, tags, and class names                                                            |
+| **Images**   | What the image shows                                                                                                |
+| **Projects** | Name, description, owner username, and tags                                                                         |
+| **Models**   | Model name; the project's name, description, owner username, and tags; and its training dataset's fields and images |
 
 On the Datasets tab, datasets that match the fields above come first, followed by datasets whose images match the
 search, and their cards show the matching images. Searching an official dataset's name or address (such as `HIT-UAV` or
@@ -82,8 +82,8 @@ Projects tab.
 
 ### Find Models by What They Detect
 
-On the Models tab, describe what you need to detect, such as `hard hat` or `aerial drones`, to find public trained
-models even when no model or project name contains your words.
+On the Models tab, describe what you need to detect, such as `hard hat` or `aerial drones`, or type a dataset's name,
+such as `african wildlife`, to find public trained models even when no model or project name contains your words.
 
 ![Ultralytics Platform Explore Models Tab Search Results](https://cdn.ul.run/i/f148f38b26d70c38e32a94288661468b.avif)<!-- screenshot -->
 
@@ -91,7 +91,8 @@ Results are ranked in three tiers:
 
 1. Official `@ultralytics` models whose name or project matches, such as YOLO26 models for `yolo26`
 2. Models whose name or project matches the search
-3. Models trained on public datasets whose images match the search, best match first
+3. Models trained on public datasets that match the search, in the Datasets tab's order: datasets whose name,
+   description, owner username, tags, or class names match first, then datasets whose images match
 
 To keep repeated runs and copies from filling the page, the tab lists one model per training dataset (or per project for
 models without one), while official `@ultralytics` models each keep their own card. It leaves out cloned models and

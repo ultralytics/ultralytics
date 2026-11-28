@@ -1482,6 +1482,19 @@ def test_events():
     events(cfg)
 
 
+def test_tqdm_byte_suffix_collapse():
+    """Progress bars collapse the numerator's byte suffix when both values share it."""
+    from io import StringIO
+
+    from ultralytics.utils.tqdm import TQDM
+
+    stream = StringIO()
+    pbar = TQDM(total=20, unit="B", unit_scale=True, unit_divisor=1024, disable=False, file=stream)
+    pbar.n = 11
+    pbar._display(final=True)
+    assert "11/20B" in stream.getvalue()
+
+
 def test_cfg_init():
     """Test configuration initialization utilities from the 'ultralytics.cfg' module."""
     from ultralytics.cfg import check_dict_alignment, copy_default_cfg, smart_value

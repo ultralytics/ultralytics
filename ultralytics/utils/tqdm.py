@@ -272,8 +272,10 @@ class TQDM:
             percent = int(self.n / self.total * 100)
             n_str = self._format_num(self.n)
             t_str = self._format_num(self.total)
-            if self.is_bytes and n_str[-2] == t_str[-2]:  # Collapse suffix only when identical (e.g. "5.4/5.4MB")
-                n_str = n_str.rstrip("KMGTPB")
+            if (
+                self.is_bytes and (suffix := t_str.lstrip("0123456789.")) and n_str.endswith(suffix)
+            ):  # Collapse suffix only when identical (e.g. "5.4/5.4MB")
+                n_str = n_str[: -len(suffix)]
         else:
             percent = 0.0
             n_str, t_str = self._format_num(self.n), "?"
